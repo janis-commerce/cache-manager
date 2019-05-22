@@ -1,5 +1,5 @@
-"use strict";
+'use strict';
 
-const { CacheManager } = require("./cache");
+const { CacheManager } = require('./cache');
 
 module.exports = CacheManager;

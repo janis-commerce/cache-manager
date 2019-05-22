@@ -1,7 +1,5 @@
-"use strict";
+'use strict';
 
-const MemoryManager = require("./memory-manager");
+const CacheManager = require('./manager');
 
-module.exports = {
-  MemoryManager
-};
+module.exports = { CacheManager };

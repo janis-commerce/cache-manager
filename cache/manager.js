@@ -8,15 +8,6 @@ const CacheNotifier = require('./notifier');
 const RedisManager = require('./redis-manager');
 const MemoryManager = require('./memory-manager');
 
-
-const redis = Symbol('redis');
-const memory = Symbol('memory');
-
-/**
-*	Cache Manager class - Singleton
-*	@memberof Core
-*/
-
 class CacheManager {
 
 	constructor() {
@@ -78,14 +69,12 @@ class CacheManager {
 
 		this.validateClient(isClientCache);
 
-		if(!this[redis]) {
-			this[redis] = RedisManager;
-			this[redis].performance = this.performance;
-		}
+		if(!this._redis)
+			this._redis = RedisManager;
 
-		this[redis].keyPrefix = this.getKeyPrefix(isClientCache);
+		this._redis.keyPrefix = this.getKeyPrefix(isClientCache);
 
-		return this[redis];
+		return this._redis;
 	}
 
 	/**
@@ -99,14 +88,12 @@ class CacheManager {
 
 		this.validateClient(isClientCache);
 
-		if(!this[memory]) {
-			this[memory] = MemoryManager;
-			this[memory].performance = this.performance;
-		}
+		if(!this._memory) 
+			this._memory = MemoryManager;
 
-		this[memory].keyPrefix = this.getKeyPrefix(isClientCache);
+		this._memory.keyPrefix = this.getKeyPrefix(isClientCache);
 
-		return this[memory];
+		return this._memory;
 	}
 
 	/**
@@ -168,8 +155,8 @@ class CacheManager {
 
 				return process.nextTick(() => {
 
-					if(this[memory][entity] && this[memory][entity][method])
-						this[memory][entity][method]();
+					if(this._memory[entity] && this._memory[entity][method])
+						this._memory[entity][method]();
 
 					resolve();
 				});
@@ -180,7 +167,7 @@ class CacheManager {
 			// We run `method` on each cache in a different tick of the event loop,
 			// since .prune/.reset is a synchronous operation, we don't want to loop through a big collection synchronously
 			// blocking the event loop
-			async.each(this[memory], (cache, callback) => {
+			async.each(this._memory, (cache, callback) => {
 
 				process.nextTick(() => {
 

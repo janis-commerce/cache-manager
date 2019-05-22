@@ -39,17 +39,19 @@ class MemoryManager {
 		return subkey !== '' ? `${key}-${subkey}` : key;
 	}
 
+	/*
 	set(key, value, subkey = '') {
 		this.performance.addRequest('memorySet', key);
 		return this.getInstance(key).set(this._getKey(key, subkey), value);
 	}
+	*/
 
 	async reset(key) {
 		if(key) {
 			key = this._getInstanceKey(key);
 
 			// eslint-disable-next-line nonblock-statement-body-position
-			if(this.checkInsatnce(key)) return this.resetInstance(key);
+			if(this.checkInstance(key)) return this.resetInstance(key);
 		} else return this.resetAllInstances();
 	}
 
@@ -62,7 +64,7 @@ class MemoryManager {
 	async resetInstance(key) {
 		return process.nextTick(() => {
 			// eslint-disable-next-line nonblock-statement-body-position
-			if(this.checkInsatnce(key)) this.instances[key].reset();
+			if(this.checkInstance(key)) this.instances[key].reset();
 		});
 	}
 }

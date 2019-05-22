@@ -1,140 +1,159 @@
-"use strict";
+'use strict';
 
-const assert = require("assert");
+const assert = require('assert');
 
-const CacheManager = require("../cache/manager");
-const RedisManager = require("../cache/redis-manager");
-const MemoryManager = require("../cache/memory-manager");
-const CacheNotifier = require("../cache/notifier");
+const {
+	CacheManager,
+	RedisManager,
+	MemoryManager,
+	CacheNotifier
+} = require('../cache');
 
 function sleep(s = 1) {
-  return new Promise(resolve => setTimeout(resolve, s * 1000));
+	return new Promise(resolve => setTimeout(resolve, s * 1000));
 }
 
-describe("Cache Manager", function() {
-  describe("validateClient", function() {
-    it("Should rejects when requesting client cache and no client setted", async function() {
-      CacheManager.client = null;
-      assert.throws(() => {
-        CacheManager.validateClient(true);
-      }, Error);
-    });
+describe('Cache Manager', function() {
 
-    it("Should validates when requesting core cache without client setted", async function() {
-      CacheManager.client = null;
-      assert(CacheManager.validateClient(false));
-    });
+	describe('validateClient', function() {
 
-    it("Should validates when requesting core cache with client setted", async () => {
-      CacheManager.client = { id: 1 };
-      assert(CacheManager.validateClient(false));
-    });
+		it('Should rejects when requesting client cache and no client setted', async function() {
 
-    it("Should validates when requesting client cache with client setted", async () => {
-      CacheManager.client = { id: 1 };
-      assert(CacheManager.validateClient(true));
-    });
-  });
+			CacheManager.client = null;
+			assert.throws(() => { CacheManager.validateClient(true); }, Error);
+		});
 
-  describe("Redis", function() {
-    it("Should return RedisManager instance for CORE", function() {
-      CacheManager.client = null;
-      const redisCore = CacheManager.redis(false);
+		it('Should validates when requesting core cache without client setted', async function() {
 
-      assert.deepEqual(RedisManager, redisCore);
-    });
+			CacheManager.client = null;
+			assert(CacheManager.validateClient(false));
+		});
 
-    it("Should return RedisManager instance for Client", function() {
-      CacheManager.client = { id: 1 };
-      const redisClient = CacheManager.redis(true);
+		it('Should validates when requesting core cache with client setted', async function() {
 
-      assert.deepEqual(RedisManager, redisClient);
-    });
-  });
+			CacheManager.client = { id: 1 };
+			assert(CacheManager.validateClient(false));
+		});
 
-  describe("Memmory", function() {
-    it("Should return MemoryManager instance for CORE", function() {
-      CacheManager.client = null;
-      const memoryCore = CacheManager.memory(false);
+		it('Should validates when requesting client cache with client setted', async function() {
 
-      assert.deepEqual(MemoryManager, memoryCore);
-    });
+			CacheManager.client = { id: 1 };
+			assert(CacheManager.validateClient(true));
+		});
+	});
 
-    it("Should return MemoryManager instance for Client", function() {
-      CacheManager.client = { id: 1 };
-      const memoryClient = CacheManager.memory(true);
+	describe('Redis', function() {
 
-      assert.deepEqual(MemoryManager, memoryClient);
-    });
-  });
+		it('Should return RedisManager instance for CORE', function() {
+			CacheManager.client = null;
+			const redisCore = CacheManager.redis(false);
 
-  describe("Notifier", function() {
-    describe("Event <CLEAR_ENTITY> notification", function() {
-      it("Should clear a core entity", async function() {
-        CacheManager.client = null;
+			assert.deepEqual(RedisManager, redisCore);
+		});
 
-        CacheManager.memory(false).set("mock", 1);
+		it('Should return RedisManager instance for Client', function() {
+			CacheManager.client = { id: 1 };
+			const redisClient = CacheManager.redis(true);
 
-        CacheNotifier.emit(CacheNotifier.events.CLEAR_ENTITY, "mock");
+			assert.deepEqual(RedisManager, redisClient);
+		});
+	});
 
-        await sleep(1); // waiting for memory clear entity
+	describe('Memmory', function() {
 
-        assert.equal(CacheManager.memory(false).get("mock"), undefined);
-      });
+		it('Should return MemoryManager instance for CORE', function() {
+			CacheManager.client = null;
+			const memoryCore = CacheManager.memory(false);
 
-      it("Shouldn't clear a client entity when other client id sent", async function() {
-        CacheManager.client = { id: 1 };
+			assert.deepEqual(MemoryManager, memoryCore);
+		});
 
-        CacheManager.memory(true).set("mock", 1);
+		it('Should return MemoryManager instance for Client', function() {
+			CacheManager.client = { id: 1 };
+			const memoryClient = CacheManager.memory(true);
 
-        CacheNotifier.emit(CacheNotifier.events.CLEAR_ENTITY, "mock", 2);
+			assert.deepEqual(MemoryManager, memoryClient);
+		});
+	});
 
-        await sleep(1); // waiting for memory clear entity
+	describe('Notifier', function() {
 
-        CacheManager.client = { id: 1 }; // se debe setear de nuevo porque cuando se emite CLEAR_ENTITY con 2 setea el cliente 2
+		describe('Event <CLEAR_ENTITY> notification', function() {
 
-        assert.equal(CacheManager.memory(true).get("mock"), 1);
-      });
+			it('Should clear a core entity', async function() {
 
-      it("Should clear a client entity", async function() {
-        CacheManager.client = { id: 1 };
+				CacheManager.client = null;
 
-        CacheManager.memory(true).set("mock", 1);
+				CacheManager.memory(false).set('mock', 1);
 
-        CacheNotifier.emit(CacheNotifier.events.CLEAR_ENTITY, "mock", 1);
+				CacheNotifier.emit(CacheNotifier.events.CLEAR_ENTITY, 'mock');
 
-        await sleep(1); // waiting for memory clear entity
+				await sleep(1); // waiting for memory clear entity
 
-        assert.equal(CacheManager.memory(true).get("mock"), undefined);
-      });
-    });
+				assert.equal(CacheManager.memory(false).get('mock'), undefined);
 
-    describe("Event <CLEAR_ALL> notification", function() {
-      it("Should clear all memory cache", async () => {
-        CacheManager.client = null;
+			});
 
-        CacheManager.memory(false).set("foo", [1, 2, 3]);
-        CacheManager.memory(false).set("bar", 46);
+			it('Shouldn\'t clear a client entity when other client id sent', async function() {
 
-        CacheManager.client = { id: 1 };
+				CacheManager.client = { id: 1 };
 
-        CacheManager.memory(true).set("sarasa", 98);
-        CacheManager.memory(true).set("lalala", { foo: "bar" });
+				CacheManager.memory(true).set('mock', 1);
 
-        CacheNotifier.emit(CacheNotifier.events.CLEAR_ALL);
+				CacheNotifier.emit(CacheNotifier.events.CLEAR_ENTITY, 'mock', 2);
 
-        await sleep(1); // waiting for memory clear entity
+				await sleep(1); // waiting for memory clear entity
 
-        CacheManager.client = null;
+				CacheManager.client = { id: 1 }; // se debe setear de nuevo porque cuando se emite CLEAR_ENTITY con 2 setea el cliente 2
 
-        assert.equal(CacheManager.memory(false).get("foo"), undefined);
-        assert.equal(CacheManager.memory(false).get("bar"), undefined);
+				assert.equal(CacheManager.memory(true).get('mock'), 1);
 
-        CacheManager.client = { id: 1 };
+			});
 
-        assert.equal(CacheManager.memory(true).get("sarasa"), undefined);
-        assert.equal(CacheManager.memory(true).get("lalala"), undefined);
-      });
-    });
-  });
+			it('Should clear a client entity', async () => {
+
+				CacheManager.client = { id: 1 };
+
+				CacheManager.memory(true).set('mock', 1);
+
+				CacheNotifier.emit(CacheNotifier.events.CLEAR_ENTITY, 'mock', 1);
+
+				await sleep(1); // waiting for memory clear entity
+
+				assert.equal(CacheManager.memory(true).get('mock'), undefined);
+
+			});
+		});
+
+		describe('Event <CLEAR_ALL> notification', () => {
+
+			it('Should clear all memory cache', async() => {
+
+				CacheManager.client = null;
+
+				CacheManager.memory(false).set('foo', [1, 2, 3]);
+				CacheManager.memory(false).set('bar', 46);
+
+				CacheManager.client = { id: 1 };
+
+				CacheManager.memory(true).set('sarasa', 98);
+				CacheManager.memory(true).set('lalala', { foo: 'bar' });
+
+				CacheNotifier.emit(CacheNotifier.events.CLEAR_ALL);
+
+				await sleep(1); // waiting for memory clear entity
+
+				CacheManager.client = null;
+
+				assert.equal(CacheManager.memory(false).get('foo'), undefined);
+				assert.equal(CacheManager.memory(false).get('bar'), undefined);
+
+				CacheManager.client = { id: 1 };
+
+				assert.equal(CacheManager.memory(true).get('sarasa'), undefined);
+				assert.equal(CacheManager.memory(true).get('lalala'), undefined);
+			});
+		});
+	});
+
 });
