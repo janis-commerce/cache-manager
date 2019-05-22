@@ -82,17 +82,20 @@ class RedisManager {
 		return `${this.keyPrefix}${key}`;
 	}
 
+	/* PERFORMANCE NO VA MAS
+
 	set(key, subkey, value) {
 		this.performance.addRequest('cacheSet', key);
 		this.client.hset(this._getKey(key), subkey, JSON.stringify(value));
-	}
-
+	}	
 	async get(key, subkey) {
 		this.performance.addRequest('cacheGet', key);
 		const value = await this.client.hget(this._getKey(key), subkey);
 		return value ? JSON.parse(value) : null;
 	}
+	*/
 
+	
 	/**
 	*	Close all redis connections
 	*	@return {promise}

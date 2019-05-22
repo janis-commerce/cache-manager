@@ -110,7 +110,7 @@ describe("Cache Manager", function() {
     });
 
     describe("Event <CLEAR_ALL> notification", function() {
-      it("Should clear all memory cache", async function() {
+      it("Should clear all memory cache", async () => {
         CacheManager.client = null;
 
         CacheManager.memory(false).set("foo", [1, 2, 3]);

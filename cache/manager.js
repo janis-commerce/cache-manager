@@ -3,11 +3,11 @@
 const async = require('async');
 const md5 = require('md5');
 
+const logger = require('@janiscommerce/logger');
 const CacheNotifier = require('./notifier');
 const RedisManager = require('./redis-manager');
 const MemoryManager = require('./memory-manager');
 
-const logger = coreRequire('./modules/logger');
 
 const redis = Symbol('redis');
 const memory = Symbol('memory');

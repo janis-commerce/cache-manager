@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "export TEST_ENV=true; mocha --exit -R nyan --recursive tests/",
+    "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive",
+    "coverage": "nyc npm test"
   },
   "repository": {
     "type": "git",
@@ -26,6 +28,9 @@
   },
   "dependencies": {
     "@janiscommerce/logger": "^1.1.0",
-    "lru-cache": "^5.1.1"
+    "async": "^3.0.0",
+    "lru-cache": "^5.1.1",
+    "md5": "^2.2.1",
+    "redis": "^2.8.0"
   }
 }
