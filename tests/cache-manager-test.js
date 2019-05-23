@@ -3,11 +3,15 @@
 const assert = require('assert');
 
 const {
-	CacheManager,
 	RedisManager,
 	MemoryManager,
 	CacheNotifier
 } = require('../cache');
+
+const CacheManager = require('../index');
+
+
+/* eslint-disable prefer-arrow-callback */
 
 function sleep(s = 1) {
 	return new Promise(resolve => setTimeout(resolve, s * 1000));
@@ -57,9 +61,18 @@ describe('Cache Manager', function() {
 
 			assert.deepEqual(RedisManager, redisClient);
 		});
+
+		it('Should return RedisManager instance for Client', function() {
+			CacheManager.client = { id: 1 };
+			const redisClient = CacheManager.redis(true);
+
+			assert.deepEqual(RedisManager, redisClient);
+		});
+
+		
 	});
 
-	describe('Memmory', function() {
+	describe('Memory', function() {
 
 		it('Should return MemoryManager instance for CORE', function() {
 			CacheManager.client = null;
@@ -110,24 +123,25 @@ describe('Cache Manager', function() {
 
 			});
 
-			it('Should clear a client entity', async () => {
+			it('Should clear a client entity', async function() {
 
 				CacheManager.client = { id: 1 };
 
+				// eslint-disable-next-line no-underscore-dangle
 				CacheManager.memory(true).set('mock', 1);
 
 				CacheNotifier.emit(CacheNotifier.events.CLEAR_ENTITY, 'mock', 1);
 
 				await sleep(1); // waiting for memory clear entity
 
-				assert.equal(CacheManager.memory(true).get('mock'), undefined);
+				assert.equal(CacheManager.memory(false).get('mock'), undefined);
 
 			});
 		});
 
-		describe('Event <CLEAR_ALL> notification', () => {
+		describe('Event <CLEAR_ALL> notification', function() {
 
-			it('Should clear all memory cache', async() => {
+			it('Should clear all memory cache', async function() {
 
 				CacheManager.client = null;
 
@@ -155,5 +169,6 @@ describe('Cache Manager', function() {
 			});
 		});
 	});
+
 
 });

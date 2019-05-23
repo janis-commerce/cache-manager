@@ -6,11 +6,11 @@ const redis = require('redis');
 const logger = require('@janiscommerce/logger');
 const config = require('../config/redis.json');
 
+/**
+ *	RedisManager class - Singleton
+ */
+
 class RedisManager {
-	constructor() {
-		this.clients = [];
-		this.inited = false;
-	}
 
 	set keyPrefix(prefix) {
 		this._keyPrefix = prefix;
@@ -18,6 +18,19 @@ class RedisManager {
 
 	get keyPrefix() {
 		return this._keyPrefix;
+	}
+
+	_getKey(key) {
+		return `${this.keyPrefix}${key}`;
+	}
+
+	set(key, subkey, value) {
+		this.client.hset(this._getKey(key), subkey, JSON.stringify(value));
+	}
+
+	constructor() {
+		this.clients = [];
+		this.inited = false;
 	}
 
 	initialize() {
@@ -69,7 +82,6 @@ class RedisManager {
 	*	@param {object} client - Redis client
 	*	@param {object} redis client
 	*/
-
 	promisify() {
 
 		const methods = ['hset', 'hget']; // Add more methods if needed
@@ -78,34 +90,9 @@ class RedisManager {
 			this.client[method] = promisify(this.client[method]);
 	}
 
-	_getKey(key) {
-		return `${this.keyPrefix}${key}`;
-	}
-
-	set(key, subkey, value) {
-		this.client.hset(this._getKey(key), subkey, JSON.stringify(value));
-	}	
 	async get(key, subkey) {
-		// this.performance.addRequest('cacheGet', key);
 		const value = await this.client.hget(this._getKey(key), subkey);
 		return value ? JSON.parse(value) : null;
-	}
-	
-
-	
-	/**
-	*	Close all redis connections
-	*	@return {promise}
-	*/
-
-	close() {
-		return Promise.all(this.clients.map(client => {
-			const promise = new Promise(resolve => client.on('end', resolve));
-
-			client.quit();
-
-			return promise;
-		}));
 	}
 }
 

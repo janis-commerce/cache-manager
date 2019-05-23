@@ -2,13 +2,25 @@
 
 const async = require('async');
 const md5 = require('md5');
-
 const logger = require('@janiscommerce/logger');
+
 const CacheNotifier = require('./notifier');
 const RedisManager = require('./redis-manager');
 const MemoryManager = require('./memory-manager');
 
 class CacheManager {
+
+	get MS() {
+		return process.env.MICROSERVICE || 'node';
+	}
+
+	get client() {
+		return this._client;
+	}
+
+	set client(client) {
+		this._client = client && client.id ? client.id : null;
+	}
 
 	constructor() {
 
@@ -38,7 +50,6 @@ class CacheManager {
 
 	/**
 	 * Gets the prefix.
-	 *
 	 * @param {boolean} isClientCache Indicates if client cache
 	 * @return {string} The prefix.
 	 */
@@ -47,8 +58,7 @@ class CacheManager {
 	}
 
 	/**
-	 * Validates if can use cache
-	 *
+	 * Validates if can use cache	 *
 	 * @param {boolean} isClientCache Indicates if requesting client cache
 	 * @return {boolean} true if can use it, false otherwise
 	 */
@@ -64,7 +74,6 @@ class CacheManager {
 	*	Get redis cache instance
 	*	@return {object} RedisManager instance
 	*/
-
 	redis(isClientCache = true) {
 
 		this.validateClient(isClientCache);
@@ -78,17 +87,15 @@ class CacheManager {
 	}
 
 	/**
-	 * Get a memory {@link https://github.com/isaacs/node-lru-cache LRU Cache} for a specific entity
-	 *
+	 * Get a memory {@link https://github.com/isaacs/node-lru-cache LRU Cache} for a specific entity	 *
 	 * @param {boolean} isClientCache Determinates if client cache
 	 * @return {object} MemoryManager instance
 	 */
-
 	memory(isClientCache = false) {
 
 		this.validateClient(isClientCache);
 
-		if(!this._memory) 
+		if(!this._memory)
 			this._memory = MemoryManager;
 
 		this._memory.keyPrefix = this.getKeyPrefix(isClientCache);
@@ -97,8 +104,7 @@ class CacheManager {
 	}
 
 	/**
-	 * Prepares the params, adding MS prefix
-	 *
+	 * Prepares the params, adding MS prefix	 *
 	 * @param {object} params The parameters
 	 * @return {string} encoded parameters
 	 */
@@ -204,19 +210,6 @@ class CacheManager {
 
 	close() {
 		RedisManager.close();
-	}
-
-
-	get MS() {
-		return process.env.MICROSERVICE || 'node';
-	}
-
-	get client() {
-		return this._client;
-	}
-
-	set client(client) {
-		this._client = client && client.id ? client.id : null;
 	}
 }
 

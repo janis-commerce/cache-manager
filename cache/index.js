@@ -1,9 +1,9 @@
 'use strict';
 
-const CacheManager = require('./manager');
-const MemoryManager = require('./memory-manager')
-const CacheNotifier = require('./notifier')
-const RedisManager = require('./redis-manager')
+const CacheManager = require('./cache-manager');
+const MemoryManager = require('./memory-manager');
+const CacheNotifier = require('./notifier');
+const RedisManager = require('./redis-manager');
 
 module.exports = {
 	CacheManager,

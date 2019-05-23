@@ -2,6 +2,10 @@
 
 const LRU = require('lru-cache');
 
+/**
+ *	MemoryManager class - Singleton
+ */
+
 class MemoryManager {
 	constructor() {
 		this.instances = {};
@@ -27,7 +31,7 @@ class MemoryManager {
 		key = this._getInstanceKey(key);
 
 		if(!this.checkInstance(key)) {
-			this.instances[key] = LRU({
+			this.instances[key] = new LRU({
 				max: 500,
 				maxAge: 1000 * 60 * 60
 			});
@@ -39,19 +43,21 @@ class MemoryManager {
 		return subkey !== '' ? `${key}-${subkey}` : key;
 	}
 
-	
 	set(key, value, subkey = '') {
-		// this.performance.addRequest('memorySet', key);
 		return this.getInstance(key).set(this._getKey(key, subkey), value);
 	}
-	
+
+	get(key, subkey = '') {
+		// this.performance.addRequest('memoryGet', key);
+		return this.getInstance(key).get(this._getKey(key, subkey));
+	}
 
 	async reset(key) {
 		if(key) {
 			key = this._getInstanceKey(key);
 
-			// eslint-disable-next-line nonblock-statement-body-position
-			if(this.checkInstance(key)) return this.resetInstance(key);
+			if(this.checkInstance(key))
+				return this.resetInstance(key);
 		} else return this.resetAllInstances();
 	}
 
@@ -63,8 +69,8 @@ class MemoryManager {
 
 	async resetInstance(key) {
 		return process.nextTick(() => {
-			// eslint-disable-next-line nonblock-statement-body-position
-			if(this.checkInstance(key)) this.instances[key].reset();
+			if(this.checkInstance(key)) 
+				this.instances[key].reset();
 		});
 	}
 }

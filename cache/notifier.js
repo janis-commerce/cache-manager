@@ -1,16 +1,15 @@
 'use strict';
 
 const EventEmitter = require('events');
-const RedisManager = require('./memory-manager');
+const RedisManager = require('./redis-manager');
 
 /**
- *	Cache Notifier class - Singleton
- *	@memberof Core
+ *	CacheNotifier class - Singleton
  *	@extends EventEmitter
  */
 
 class CacheNotifier extends EventEmitter {
-    
+
 	get channel() {
 		return 'clear-cache';
 	}
@@ -40,8 +39,8 @@ class CacheNotifier extends EventEmitter {
 	/**
    *	Handle redis message
    *	@private
-   *	@param {string} channel - The channel name
-   *	@param {string} message - The message
+   *	@param {string} channel - channel name
+   *	@param {string} message - message
    */
 	handleMessage(channel, message) {
 		if(channel !== this.channel || !message)
