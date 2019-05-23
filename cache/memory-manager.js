@@ -39,12 +39,12 @@ class MemoryManager {
 		return subkey !== '' ? `${key}-${subkey}` : key;
 	}
 
-	/*
+	
 	set(key, value, subkey = '') {
-		this.performance.addRequest('memorySet', key);
+		// this.performance.addRequest('memorySet', key);
 		return this.getInstance(key).set(this._getKey(key, subkey), value);
 	}
-	*/
+	
 
 	async reset(key) {
 		if(key) {
