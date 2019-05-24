@@ -19,24 +19,26 @@ class MemoryManager {
 		return this._keyPrefix;
 	}
 
-	checkInstance(key) {
-		return typeof this.instances[key] !== 'undefined';
-	}
-
-	_getInstanceKey(key) {
-		return `${this.keyPrefix}${key}`;
-	}
-
 	getInstance(key) {
 		key = this._getInstanceKey(key);
 
 		if(!this.checkInstance(key)) {
 			this.instances[key] = new LRU({
 				max: 500,
-				maxAge: 1000 * 60 * 60
+				maxAge: 1000 * 60 * 60 // 1 hour default max age
+				// Implement dispose function if we are saving in cache a value that needs to be close gracefully: File descriptor, database...
 			});
 		}
+
 		return this.instances[key];
+	}
+
+	checkInstance(key) {
+		return typeof this.instances[key] !== 'undefined';
+	}
+
+	_getInstanceKey(key) {
+		return `${this.keyPrefix}${key}`;
 	}
 
 	_getKey(key, subkey) {
@@ -48,7 +50,6 @@ class MemoryManager {
 	}
 
 	get(key, subkey = '') {
-		// this.performance.addRequest('memoryGet', key);
 		return this.getInstance(key).get(this._getKey(key, subkey));
 	}
 
@@ -56,7 +57,7 @@ class MemoryManager {
 		if(key) {
 			key = this._getInstanceKey(key);
 
-			if(this.checkInstance(key))
+			if(this.checkInstance(key)) 
 				return this.resetInstance(key);
 		} else return this.resetAllInstances();
 	}

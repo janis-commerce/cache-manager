@@ -94,6 +94,16 @@ class RedisManager {
 		const value = await this.client.hget(this._getKey(key), subkey);
 		return value ? JSON.parse(value) : null;
 	}
+
+	close() {
+		return Promise.all(this.clients.map(client => {
+			const promise = new Promise(resolve => client.on('end', resolve));
+
+			client.quit();
+
+			return promise;
+		}));
+	}
 }
 
 module.exports = new RedisManager();

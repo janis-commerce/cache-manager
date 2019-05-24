@@ -44,6 +44,7 @@ class CacheManager {
 	}
 
 	initialize() {
+		logger.info('Cache Manager init!');
 		CacheNotifier.listen();
 		RedisManager.initialize();
 	}
