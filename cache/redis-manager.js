@@ -2,40 +2,52 @@
 
 const { promisify } = require('util');
 const redis = require('redis');
+const md5 = require('md5');
 
 const logger = require('@janiscommerce/logger');
 const config = require('../config/redis.json');
 
 /**
- *	RedisManager class - Singleton
- */
+*    RedisManager class - Singleton
+*/
 
 class RedisManager {
 
-	set keyPrefix(prefix) {
+	static set keyPrefix(prefix) {
 		this._keyPrefix = prefix;
 	}
 
-	get keyPrefix() {
+	static get keyPrefix() {
 		return this._keyPrefix;
 	}
 
-	_getKey(key) {
+	static _getKey(key) {
 		return `${this.keyPrefix}${key}`;
 	}
 
-	set(key, subkey, value) {
-		this.client.hset(this._getKey(key), subkey, JSON.stringify(value));
+	/* Prepares the params, adding MS prefix     *
+    * @param {object} params The parameters
+    * @return {string} encoded parameters
+    */
+	static _prepareParams(params) {
+		return md5(JSON.stringify({
+			_MS: this.MS,
+			...params
+		}));
 	}
 
-	constructor() {
+
+	static initialize(prefix) {
+
+		this.keyPrefix = prefix;
+
 		this.clients = [];
 		this.inited = false;
-	}
 
-	initialize() {
+		// Si estaba inicializado, borra todo y cargar el nuevo cliente
 		if(this.client)
-			return;
+			this.reset();
+
 
 		this.client = this.createClient();
 
@@ -43,12 +55,12 @@ class RedisManager {
 	}
 
 	/**
-   *	Create a redis client
-   *	@param {object} options - Redis client options
-   *	@param {boolean} [promise=true] - Whether to promisify methods or not. There are cases where we need an unmodified client (IE: to pass to socket.io adapter)
-   *	@return {object} redis client
-   */
-	createClient(options = {}) {
+     *    Create a redis client
+     *    @param {object} options - Redis client options
+     *    @param {boolean} [promise=true] - Whether to promisify methods or not. There are cases where we need an unmodified client (IE: to pass to socket.io adapter)
+     *    @return {object} redis client
+     */
+	static createClient(options = {}) {
 		const host = config.host || 'localhost';
 		const port = config.port || 6379;
 
@@ -78,24 +90,79 @@ class RedisManager {
 	}
 
 	/**
-	*	Promisify redis methods
-	*	@param {object} client - Redis client
-	*	@param {object} redis client
-	*/
-	promisify() {
+     *    Promisify redis methods
+     *    @param {object} client - Redis client
+     *    @param {object} redis client
+     */
+	static promisify() {
 
-		const methods = ['hset', 'hget']; // Add more methods if needed
+		const methods = ['hset', 'hget', 'hdel', 'del', 'flushall']; // Add more methods if needed
 
 		for(const method of methods)
 			this.client[method] = promisify(this.client[method]);
 	}
 
-	async get(key, subkey) {
-		const value = await this.client.hget(this._getKey(key), subkey);
-		return value ? JSON.parse(value) : null;
+	static async set(key, subkey, value) {
+		// Si no existen datos para guardar manda error.
+		if(!key || !subkey || !value)
+			throw new Error('SET - Missing parametres.');
+
+		// Guarda
+		await this.client.hset(this._getKey(key), this._prepareParams(subkey), JSON.stringify(value));
 	}
 
-	close() {
+	static async get(key, subkey) {
+		if(!key || !subkey) {
+			logger.error('Redis - No Search. Missing Parametres');
+			throw new Error('GET - Missing Parametres.');
+		}
+		const value = await this.client.hget(this._getKey(key), this._prepareParams(subkey));
+		return value ? JSON.parse(value) : null;
+	}
+	/**
+     * Borra un Registro Individual
+     * @param {String} key Entidad
+     * @param {String} subkey Registro
+     */
+
+	static async resetOne(key, subkey) {
+		await this.client.hdel(this._getKey(key), subkey);
+	}
+
+	/**
+     * Borra toda una entidad y sus Registros
+     * @param {String} key Entidad
+     */
+
+	static async resetEntity(key) {
+		await this.client.del(this._getKey(key));
+	}
+
+	/**
+     * Borra Todos las Entidades con sus registros.
+     */
+
+	static async resetAll() {
+		await this.client.flushall('ASYNC');
+	}
+
+	/**
+     * Borra los valores guardados en memoria
+     *@param {*} key Entidad
+     *@param {*} subkey Registro
+     */
+
+	static async reset(key, subkey = null) {
+
+		if(!key)
+			await this.resetAll();
+		else if(subkey)
+			await this.resetOne(key, subkey);
+		else
+			await this.resetEntity(key);
+	}
+
+	static close() {
 		return Promise.all(this.clients.map(client => {
 			const promise = new Promise(resolve => client.on('end', resolve));
 
@@ -106,4 +173,4 @@ class RedisManager {
 	}
 }
 
-module.exports = new RedisManager();
+module.exports = RedisManager;

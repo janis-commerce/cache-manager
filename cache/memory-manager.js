@@ -1,25 +1,33 @@
 'use strict';
 
 const LRU = require('lru-cache');
+const md5 = require('md5');
 
 /**
- *	MemoryManager class - Singleton
- */
+*    MemoryManager class - Singleton
+*/
 
 class MemoryManager {
-	constructor() {
+	// INICIALIZA
+	static iniciar(client) {
+
+		if(this.keyPrefix)
+			this.reset();
+
 		this.instances = {};
+		this.keyPrefix = client;
 	}
 
-	set keyPrefix(prefix) {
+	// SETTER Y GETTER
+	static set keyPrefix(prefix) {
 		this._keyPrefix = prefix;
 	}
 
-	get keyPrefix() {
+	static get keyPrefix() {
 		return this._keyPrefix;
 	}
 
-	getInstance(key) {
+	static getInstance(key) {
 		key = this._getInstanceKey(key);
 
 		if(!this.checkInstance(key)) {
@@ -33,47 +41,74 @@ class MemoryManager {
 		return this.instances[key];
 	}
 
-	checkInstance(key) {
+	// """"PRIVADOS"""""
+	static checkInstance(key) {
 		return typeof this.instances[key] !== 'undefined';
 	}
 
-	_getInstanceKey(key) {
+	// """"PRIVADOS"""""
+	static _getInstanceKey(key) {
 		return `${this.keyPrefix}${key}`;
 	}
 
-	_getKey(key, subkey) {
+	// """"PRIVADOS"""""
+	static _getKey(key, subkey) {
 		return subkey !== '' ? `${key}-${subkey}` : key;
 	}
 
-	set(key, value, subkey = '') {
-		return this.getInstance(key).set(this._getKey(key, subkey), value);
+	static _prepareParams(params) {
+		return md5(JSON.stringify({
+			_MS: this.MS,
+			...params
+		}));
 	}
 
-	get(key, subkey = '') {
-		return this.getInstance(key).get(this._getKey(key, subkey));
+	// ""PUBLICOS"
+	static set(key, subkey = '', value) {
+
+		return this.getInstance(key).set(this._getKey(key, this._prepareParams(subkey)), value);
 	}
 
-	async reset(key) {
+	// ""PUBLICOS"
+	static async get(key, subkey = '') {
+		return this.getInstance(key).get(this._getKey(key, this._prepareParams(subkey)));
+	}
+
+	// ""PUBLICOS"
+	static async reset(key = null) {
 		if(key) {
 			key = this._getInstanceKey(key);
 
-			if(this.checkInstance(key)) 
+			if(this.checkInstance(key))
 				return this.resetInstance(key);
 		} else return this.resetAllInstances();
 	}
 
-	resetAllInstances() {
+	// """"PRIVADOS"""""
+	static resetAllInstances() {
+
+		if(!this.instances)
+			return null;
+
 		return Promise.all(
 			Object.keys(this.instances).map(key => this.resetInstance(key))
 		);
 	}
 
-	async resetInstance(key) {
+	// """"PRIVADOS"""""
+	static async resetInstance(key) {
 		return process.nextTick(() => {
-			if(this.checkInstance(key)) 
+			if(this.checkInstance(key))
 				this.instances[key].reset();
 		});
 	}
+
+	static prune(key) {
+		key = this._getInstanceKey(key);
+		if(this.checkInstance(key))
+			this.instances[key].prune();
+	}
 }
 
-module.exports = new MemoryManager();
+// module.exports = new MemoryManager(); // no va
+module.exports = MemoryManager;

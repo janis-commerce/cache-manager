@@ -45,7 +45,9 @@ class Develop {
 }
 
 const develop = new Develop({id: 'develop' });
-develop.fetchCache({prop: 'algo' });
+
+CacheManager.initialize();
+CacheManager.prune('namespace', true).then(data =>console.log(data)).catch(err=> console.log(err))
 
 
 //  memory manager
@@ -67,4 +69,4 @@ function memoManager() {
 	// borrando instancias
 	console.log('buscando una key borrada - ' + memory.get('mem1'));
 }
-// memoManager();
+memoManager();

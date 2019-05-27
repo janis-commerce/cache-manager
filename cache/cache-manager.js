@@ -1,217 +1,96 @@
 'use strict';
 
-const async = require('async');
-const md5 = require('md5');
 const logger = require('@janiscommerce/logger');
 
-const CacheNotifier = require('./notifier');
 const RedisManager = require('./redis-manager');
 const MemoryManager = require('./memory-manager');
 
+const STRATEGIES = ['memory', 'redis'];
+
 class CacheManager {
 
-	get MS() {
-		return process.env.MICROSERVICE || 'node';
+	static set client(client) {
+		this._client = client;
 	}
 
-	get client() {
+	static get client() {
 		return this._client;
 	}
 
-	set client(client) {
-		this._client = client && client.id ? client.id : null;
+	static initialize(client) {    
+
+		if(this.client)
+			return ;
+
+		this.client = client;
+		// Inicializa
+		MemoryManager.iniciar(this.client);
+		RedisManager.initialize(this.client);
+		// Y limpia para empezar de 0
+		MemoryManager.reset();
+		RedisManager.reset();
+
+		logger.info(`Cache cleared! Client: ${this.client || 'all'}`);
 	}
 
-	constructor() {
-
-		CacheNotifier.on(CacheNotifier.events.CLEAR_ENTITY, async(entity, clientId) => {
-
-			this.client = clientId ? { id: clientId } : null;
-
-			const isClientCache = !!clientId;
-
-			await this.memory(isClientCache).reset(entity);
-
-			logger.info(`Cache for entity '${entity}' cleared! Client: ${clientId || 'all'}`);
-		});
-
-		CacheNotifier.on(CacheNotifier.events.CLEAR_ALL, async() => {
-
-			await this.memory(false).reset();
-
-			logger.info('Cache cleared!');
-		});
+	static get memory() {
+		return MemoryManager;
 	}
 
-	initialize() {
-		logger.info('Cache Manager init!');
-		CacheNotifier.listen();
-		RedisManager.initialize();
+	static get redis() {
+		return RedisManager;
 	}
 
-	/**
-	 * Gets the prefix.
-	 * @param {boolean} isClientCache Indicates if client cache
-	 * @return {string} The prefix.
-	 */
-	getKeyPrefix(isClientCache) {
-		return isClientCache ? `${this.client}-` : '';
+	static save(entity, params, results) {
+
+		this.memory.set(entity, params, results);
+		this.redis.set(entity, params, results);
 	}
 
-	/**
-	 * Validates if can use cache	 *
-	 * @param {boolean} isClientCache Indicates if requesting client cache
-	 * @return {boolean} true if can use it, false otherwise
-	 */
-	validateClient(isClientCache) {
+	static async fetch(entity, params, results) {
 
-		if(isClientCache && !this.client)
-			throw new Error('CacheManager - Cache for client without client logged');
+		// Busco primero en memoria
 
-		return true;
-	}
+		let fetched = this.memory.get(entity, params, results);
 
-	/**
-	*	Get redis cache instance
-	*	@return {object} RedisManager instance
-	*/
-	redis(isClientCache = true) {
-
-		this.validateClient(isClientCache);
-
-		if(!this._redis)
-			this._redis = RedisManager;
-
-		this._redis.keyPrefix = this.getKeyPrefix(isClientCache);
-
-		return this._redis;
-	}
-
-	/**
-	 * Get a memory {@link https://github.com/isaacs/node-lru-cache LRU Cache} for a specific entity	 *
-	 * @param {boolean} isClientCache Determinates if client cache
-	 * @return {object} MemoryManager instance
-	 */
-	memory(isClientCache = false) {
-
-		this.validateClient(isClientCache);
-
-		if(!this._memory)
-			this._memory = MemoryManager;
-
-		this._memory.keyPrefix = this.getKeyPrefix(isClientCache);
-
-		return this._memory;
-	}
-
-	/**
-	 * Prepares the params, adding MS prefix	 *
-	 * @param {object} params The parameters
-	 * @return {string} encoded parameters
-	 */
-	_prepareParams(params) {
-		return md5(JSON.stringify({
-			_MS: this.MS,
-			...params
-		}));
-	}
-
-	async fetch(entity, params = {}, isClientCache = false) {
-
-		const newParams = this._prepareParams(params);
-
-		let fetched = this.memory(isClientCache).get(entity, newParams); // no 'await' necesary
-
-		if(typeof fetched !== 'undefined')
-			return fetched;
-
-		fetched = await this.redis(isClientCache).get(entity, newParams);
-
-		if(fetched !== null) {
-			// if memory no fetch but redis fetch, save memory
-			this.memory(isClientCache).set(entity, fetched, newParams);
+		if(typeof fetched !== 'undefined') {
+			logger.info('Cache - Found in memory.');
 			return fetched;
 		}
 
-		return undefined;
+		// Busco en Redis
+
+		fetched = await this.redis.get(entity, params, results);
+
+		if(fetched !== null) {
+			// Si existe, carga en memoria
+			logger.info('Cache - Found in redis.');
+			this.memory.set(entity, params, results);
+			return fetched;
+		}
+		// si no existe retorna null
+		return null;
+
 	}
 
-	save(entity, params, results, isClientCache = false) {
-
-		const newParams = this._prepareParams(params);
-
-		this.memory(isClientCache).set(entity, results, newParams);
-		this.redis(isClientCache).set(entity, newParams, results);
-	}
-
-	/**
-	*	Prune/Clear memory cache/s
-	*	@param {string} [entity] - The cache of the entity that will be pruned. If empty all caches will be pruned
-	*	@private
-	*	@return {Promise}
-    */
-
-	_clean(entity, isClientCache, method) {
-
-		return new Promise(resolve => {
-
-			// Remove single cache
-			if(entity) {
-
-				entity = this.getNamespace(entity, isClientCache);
-
-				return process.nextTick(() => {
-
-					if(this._memory[entity] && this._memory[entity][method])
-						this._memory[entity][method]();
-
-					resolve();
-				});
-
-			}
-
-			// Prune/Reset all caches
-			// We run `method` on each cache in a different tick of the event loop,
-			// since .prune/.reset is a synchronous operation, we don't want to loop through a big collection synchronously
-			// blocking the event loop
-			async.each(this._memory, (cache, callback) => {
-
-				process.nextTick(() => {
-
-					if(cache[method])
-						cache[method]();
-
-					callback();
-				});
-
-			}, resolve);
-
+	static async _clean(entity, method) {
+		STRATEGIES.forEach(async strategy => {
+			await this[strategy][method](entity);
 		});
 	}
 
-	/**
-	*	Prune memory cache/s: Manually iterates over the entire cache proactively pruning old entries
-	*	@param {string} [namespace] - The cache of the namespace that will be pruned. If empty all caches will be pruned
-	*	@return {Promise}
-	*/
-
-	prune(namespace, isClientCache = false) {
-		return this._clean(namespace, isClientCache, 'prune');
+	static async prune(namespace) {
+		await this._clean(namespace, 'prune');
 	}
 
-	/**
-	*	Reset memory cache/s
-	*	@param {string} [namespace] - The cache of the namespace that will be cleared. If empty all caches will be cleared
-	*	@return {Promise}
-	*/
-
-	reset(namespace, isClientCache = false) {
-		return this._clean(namespace, isClientCache, 'reset');
+	static async reset(namespace) {
+		await this._clean(namespace, 'reset');
 	}
 
-	close() {
+	static close() {
 		RedisManager.close();
 	}
+
 }
 
-module.exports = new CacheManager();
+module.exports = CacheManager;
