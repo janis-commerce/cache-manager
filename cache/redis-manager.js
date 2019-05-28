@@ -1,17 +1,50 @@
 'use strict';
 
 const { promisify } = require('util');
-const redis = require('redis');
 const md5 = require('md5');
-
+const path = require('path');
 const logger = require('@janiscommerce/logger');
-const config = require('../config/redis.json');
+const redis = require('redis');
+// const config = require('../config/redis.json');
 
 /**
-*    RedisManager class - Singleton
+*    RedisManager class - Static
 */
-
 class RedisManager {
+
+	/**
+     * Get the Redis Config JSON path
+     */
+	static get configPath() {
+		return path.join(process.cwd(), 'config/redis.json');
+	}
+
+	/**
+     * Cache the Redis config
+     */
+	static _cacheConfig() {
+		let config;
+
+		try {
+			/* eslint-disable global-require, import/no-dynamic-require */
+			config = require(this.configPath);
+		} catch(error) {
+			throw new Error('Invalid config path');
+		}
+
+		this._config = config;
+	}
+
+	/**
+     * Get the Redis config
+     * @return {object}
+     */
+	static get config() {
+		if(!this._config)
+			this._cacheConfig();
+
+		return this._config;
+	}
 
 	static set keyPrefix(prefix) {
 		this._keyPrefix = prefix;
@@ -25,7 +58,8 @@ class RedisManager {
 		return `${this.keyPrefix}${key}`;
 	}
 
-	/* Prepares the params, adding MS prefix     *
+	/**
+     * Prepares the params, adding MS prefix     *
     * @param {object} params The parameters
     * @return {string} encoded parameters
     */
@@ -36,21 +70,20 @@ class RedisManager {
 		}));
 	}
 
+	/**
+     * Initialize a Redis Client in order to be ready to use.
+     * @param {string} client Name of the Client.
+     */
+	static initialize(client) {
 
-	static initialize(prefix) {
+		if(this.client)
+			return;
 
-		this.keyPrefix = prefix;
-
+		this.keyPrefix = client;
 		this.clients = [];
 		this.inited = false;
 
-		// Si estaba inicializado, borra todo y cargar el nuevo cliente
-		if(this.client)
-			this.reset();
-
-
 		this.client = this.createClient();
-
 		this.promisify(this.client);
 	}
 
@@ -61,8 +94,8 @@ class RedisManager {
      *    @return {object} redis client
      */
 	static createClient(options = {}) {
-		const host = config.host || 'localhost';
-		const port = config.port || 6379;
+		const host = this.config.host || 'localhost';
+		const port = this.config.port || 6379;
 
 		const defaults = {
 			host,
@@ -102,66 +135,65 @@ class RedisManager {
 			this.client[method] = promisify(this.client[method]);
 	}
 
+	/**
+     * Save the data.
+     *@param {*} key Entity name
+     *@param {*} subkey Parametres, will be encryptic
+     *@param {*} value Results
+     */
 	static async set(key, subkey, value) {
-		// Si no existen datos para guardar manda error.
+		// If there are no data to save throws Error
 		if(!key || !subkey || !value)
 			throw new Error('SET - Missing parametres.');
 
-		// Guarda
-		await this.client.hset(this._getKey(key), this._prepareParams(subkey), JSON.stringify(value));
+		const newParams = this._prepareParams(subkey); // Encrypt params
+		await this.client.hset(this._getKey(key), newParams, JSON.stringify(value));
 	}
 
+	/**
+     * Search the data
+     * @param {string} key Entity
+     * @param {params} subkey Parametres
+     */
 	static async get(key, subkey) {
-		if(!key || !subkey) {
-			logger.error('Redis - No Search. Missing Parametres');
+		// If no data to search throws Error
+		if(!key || !subkey)
 			throw new Error('GET - Missing Parametres.');
-		}
+
 		const value = await this.client.hget(this._getKey(key), this._prepareParams(subkey));
 		return value ? JSON.parse(value) : null;
 	}
-	/**
-     * Borra un Registro Individual
-     * @param {String} key Entidad
-     * @param {String} subkey Registro
-     */
-
-	static async resetOne(key, subkey) {
-		await this.client.hdel(this._getKey(key), subkey);
-	}
 
 	/**
-     * Borra toda una entidad y sus Registros
+     * Delete an Entity and all its registries
      * @param {String} key Entidad
      */
-
 	static async resetEntity(key) {
 		await this.client.del(this._getKey(key));
 	}
 
 	/**
-     * Borra Todos las Entidades con sus registros.
+     * Delete All entities.
      */
-
 	static async resetAll() {
 		await this.client.flushall('ASYNC');
 	}
 
 	/**
-     * Borra los valores guardados en memoria
-     *@param {*} key Entidad
-     *@param {*} subkey Registro
+     * Delete values in memory
+     *@param {*} key Entity
+     *@param {*} subkey Parametres
      */
-
 	static async reset(key, subkey = null) {
-
-		if(!key)
+		if(!key) // No Key, Delete All
 			await this.resetAll();
-		else if(subkey)
-			await this.resetOne(key, subkey);
-		else
+		else // If only have key, Delete Entity
 			await this.resetEntity(key);
 	}
 
+	/**
+     * Close connection
+     */
 	static close() {
 		return Promise.all(this.clients.map(client => {
 			const promise = new Promise(resolve => client.on('end', resolve));

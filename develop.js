@@ -1,72 +1,51 @@
 /* eslint-disable no-console */
+
 'use strict';
 
 const logger = require('@janiscommerce/logger');
 const { CacheManager, RedisManager, MemoryManager } = require('./cache');
 
-// cache manager test
-class Develop {
-
-	constructor(client = {}) {
-		this.client = client;
-		this.initCache();
-	}
-
-	initCache() {
-		CacheManager.initialize();
-	}
-
-	get entity() {
-		return this.constructor.name.toLowerCase();
-	}
-
-	getprefix() {
-		return CacheManager.getKeyPrefix(false);
-	}
-
-	getMemoryCache() {
-		return CacheManager.memory();
-	}
-
-	getRedisCache() {
-		CacheManager.client = this.client;
-		return CacheManager.redis();
-	}
-
-	fetchCache() {
-		CacheManager.client = this.client;
-		return CacheManager.fetch(this.entity);
-	}
-
-	saveCache(params, results, isClientCache) {
-		CacheManager.client = this.client;
-		return CacheManager.save(this.entity, params, results, isClientCache);
-	}
-}
-
-const develop = new Develop({id: 'develop' });
-
-CacheManager.initialize();
-CacheManager.prune('namespace', true).then(data =>console.log(data)).catch(err=> console.log(err))
-
-
 //  memory manager
-function memoManager() {
-	const memory = MemoryManager;
-	memory._keyPrefix = 'prefix';
-	memory.set('mem1', 'clave1', 'value 1');
-	memory.set('mem2', 'clave2');
 
-	console.log('key: mem3 - ' + memory.get('mem3'));
-	console.log('key: mem2 - ' + memory.get('mem2'));
-	console.log('key: mem1 - ' + memory.get('mem1'));
+MemoryManager.initialize('Fizzmod');
+MemoryManager.reset();
 
-	console.log(memory._getInstanceKey('mem2'));
-	console.log(memory.checkInstance('mem2'));
-	console.log(memory.getInstance('mem1'));
-	console.log(memory._getKey('key', 'subkey'));
-	memory.resetAllInstances();
-	// borrando instancias
-	console.log('buscando una key borrada - ' + memory.get('mem1'));
-}
-memoManager();
+MemoryManager.set('KEY1', 'SUBKEY', 'VALOR-1');
+MemoryManager.set('KEY2', 'SUBKEY', 'VALOR-2');
+MemoryManager.set('KEY3', 'SUBKEY', 'VALOR-3');
+// console.log(MemoryManager.getInstance('KEY'));
+MemoryManager.get('KEY1', 'SUBKEY').then(data => console.log(data));
+MemoryManager.get('KEY2', 'SUBKEY').then(data => console.log(data));
+MemoryManager.get('KEY3', 'SUBKEY').then(data => console.log(data));
+
+// console.log(MemoryManager.getInstance('KEY1'))
+MemoryManager.set('K1', 'SK1', 'VALOR-1');
+
+MemoryManager.reset('K1');
+
+console.log(MemoryManager.checkInstance('K1'));
+
+for(let i = 0; i < 100; i++)
+	MemoryManager.set(`KEY${i}`, `SUB${i}`, `VALOR${i}`);
+
+MemoryManager.prune();
+MemoryManager.get('KEY1', 'SUB1').then(data => {
+	console.log('PRUNE ', data);
+});
+
+setTimeout(() => {
+	MemoryManager.get('KEY1', 'SUB1').then(data => {
+		console.log('PRUNE ', data);
+	});
+}, 1000);
+
+setTimeout(() => {
+	MemoryManager.get('KEY1', 'SUB1').then(data => {
+		console.log('PRUNE ', data);
+	});
+}, 1200);
+
+/* MemoryManager.get('CLAVE', 'SK').then(data => {
+		console.log(data)
+	}); */
+	// 4372 2718

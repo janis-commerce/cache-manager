@@ -4,21 +4,15 @@ const LRU = require('lru-cache');
 const md5 = require('md5');
 
 /**
-*    MemoryManager class - Singleton
-*/
+ *	MemoryManager class - Static
+ */
 
 class MemoryManager {
-	// INICIALIZA
-	static iniciar(client) {
 
-		if(this.keyPrefix)
-			this.reset();
-
-		this.instances = {};
-		this.keyPrefix = client;
+	static get MS() {
+		return process.env.MICROSERVICE || 'node';
 	}
 
-	// SETTER Y GETTER
 	static set keyPrefix(prefix) {
 		this._keyPrefix = prefix;
 	}
@@ -27,13 +21,48 @@ class MemoryManager {
 		return this._keyPrefix;
 	}
 
+	/**
+	 * Initialize a Memory Instances in order to be ready to use
+	 * @param {string} client Name of the Client
+	 */
+	static initialize(client) {
+		if(this.keyPrefix)
+			return;
+
+		this.instances = {};
+		this.keyPrefix = client;
+	}
+
+	/**
+	 * Returns the correct name of the Key
+	 * @param {string} key
+	 * @returns {string}
+	 */
+	static _getInstanceKey(key) {
+		return `${this.keyPrefix}${key}`;
+	}
+
+	/**
+	 * Checks if the Instance is a valid one.
+	 * @param {string} key
+	 * @returns {boolean}
+	 */
+	static checkInstance(key) {
+		return typeof this.instances[key] !== 'undefined';
+	}
+
+	/**
+	 * Returns the Memory Instance.
+	 * @param {string} key
+	 * @returns {object} LRU-Instance
+	 */
 	static getInstance(key) {
 		key = this._getInstanceKey(key);
 
 		if(!this.checkInstance(key)) {
 			this.instances[key] = new LRU({
 				max: 500,
-				maxAge: 1000 * 60 * 60 // 1 hour default max age
+				maxAge: 1000 // 1 hour default max age
 				// Implement dispose function if we are saving in cache a value that needs to be close gracefully: File descriptor, database...
 			});
 		}
@@ -41,21 +70,21 @@ class MemoryManager {
 		return this.instances[key];
 	}
 
-	// """"PRIVADOS"""""
-	static checkInstance(key) {
-		return typeof this.instances[key] !== 'undefined';
-	}
-
-	// """"PRIVADOS"""""
-	static _getInstanceKey(key) {
-		return `${this.keyPrefix}${key}`;
-	}
-
-	// """"PRIVADOS"""""
+	/**
+	 * Returns the right format of Key-Subkey
+	 * @param {string} key Instance
+	 * @param {string} subkey Parametres
+	 * @returns {string}
+	 */
 	static _getKey(key, subkey) {
 		return subkey !== '' ? `${key}-${subkey}` : key;
 	}
 
+	/**
+	 * Prepares the params, adding MS prefix     *
+     * @param {object} params The parameters
+     * @return {string} encoded parameters
+     */
 	static _prepareParams(params) {
 		return md5(JSON.stringify({
 			_MS: this.MS,
@@ -63,28 +92,50 @@ class MemoryManager {
 		}));
 	}
 
-	// ""PUBLICOS"
+	/**
+	 * Save values in memory. If the Instance and Parametres exists override de value.
+	 * @param {string} key Intance
+	 * @param {string} subkey Params
+	 * @param {string} value Results
+	 * @returns {boolean} true if success.
+	 */
 	static set(key, subkey = '', value) {
-
-		return this.getInstance(key).set(this._getKey(key, this._prepareParams(subkey)), value);
+		const newParams = this._prepareParams(subkey);
+		return this.getInstance(key).set(this._getKey(key, newParams), value);
 	}
 
-	// ""PUBLICOS"
+	/**
+	 * Search the value by Instance and Parametres
+	 * @param {string} key Instance
+	 * @param {string} subkey Parametres
+	 * @returns {*} Results, 'undefined' if not found
+	 */
 	static async get(key, subkey = '') {
 		return this.getInstance(key).get(this._getKey(key, this._prepareParams(subkey)));
 	}
 
-	// ""PUBLICOS"
+	
+
+	
+
+	/**
+	 * Delete values in memory on the next loop
+	 * @param {string=} key Instance. Delete All by Default
+	 * @returns {Promise}
+	 */
 	static async reset(key = null) {
 		if(key) {
 			key = this._getInstanceKey(key);
-
 			if(this.checkInstance(key))
 				return this.resetInstance(key);
-		} else return this.resetAllInstances();
+		} else
+			return this.resetAllInstances();
 	}
 
-	// """"PRIVADOS"""""
+	/**
+	 * Delete all instances on the next loop
+	 * @returns {Array} Array length = Number of Instances deleted
+	 */
 	static resetAllInstances() {
 
 		if(!this.instances)
@@ -95,7 +146,11 @@ class MemoryManager {
 		);
 	}
 
-	// """"PRIVADOS"""""
+	/**
+	 * Delete an Entity on the next loop
+	 * @param {string} key Instance
+	 * @returns {Promise}
+	 */
 	static async resetInstance(key) {
 		return process.nextTick(() => {
 			if(this.checkInstance(key))
@@ -103,12 +158,50 @@ class MemoryManager {
 		});
 	}
 
-	static prune(key) {
-		key = this._getInstanceKey(key);
-		if(this.checkInstance(key))
-			this.instances[key].prune();
+
+
+
+
+
+
+	
+	
+
+	/**
+	 * Manually iterates over the entire cache proactively pruning old entries
+	 * @param {string=} key Instance. Delete All by Default
+	 * @returns {Promise}
+	 */
+	static async prune(key = null) {
+		return this.pruneAllInstances();
 	}
+
+	/**
+	 * Prune a single Instance
+	 * @param {string} key Instance
+	 * @returns {Promise}
+	 */
+	static pruneInstance(key) {
+		return process.nextTick(() => {
+			if(this.checkInstance(key))
+				this.instances[key].prune();
+		});
+	}
+
+	/**
+	 * Prune All Instances
+	 * @returns {Promise}
+	 */
+	static pruneAllInstances() {
+
+		if(!this.instances)
+			return null;
+
+		return Promise.all(
+			Object.keys(this.instances).map(key => this.pruneInstance(key))
+		);
+	}
+
 }
 
-// module.exports = new MemoryManager(); // no va
 module.exports = MemoryManager;

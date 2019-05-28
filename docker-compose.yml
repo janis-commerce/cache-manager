@@ -1,0 +1,19 @@
+version: '3'
+services:
+  redis:
+    image: redis
+    container_name: redis-image
+    expose:
+      - 6379
+  app:
+    container_name: cache-redis
+    build: .
+    volumes:
+      - /var/www/cache  
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://cache
+  
+    
+      

@@ -6,7 +6,9 @@
   "scripts": {
     "test": "export TEST_ENV=true; mocha --exit -R nyan --recursive tests/",
     "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive",
-    "coverage": "nyc npm test"
+    "coverage": "nyc npm test",
+    "build": "docker-compose build",
+    "up": "docker-compose up"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,8 @@
   },
   "homepage": "https://github.com/janis-commerce/cache-manager#readme",
   "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.2",
