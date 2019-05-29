@@ -3,15 +3,8 @@
 'use strict';
 
 const assert = require('assert');
-const chai = require('chai');
-const { expect } = require('chai');
-const chaiAsPromised = require('chai-as-promised');
 const { RedisManager } = require('../cache');
 
-chai.use(chaiAsPromised);
-
-
-// eslint-disable-next-line prefer-arrow-callback
 describe('Redis Manager', function() {
 
 	before(function() {
@@ -22,64 +15,63 @@ describe('Redis Manager', function() {
 		return RedisManager.close();
 	});
 
-	it('setter y getter', function() {
+	it('setter y getter', async() => {
 
 		RedisManager.set('KEY', 'SUBKEY', 'VALOR');
 
-		return RedisManager.get('KEY', 'SUBKEY').then(data => {
-			assert.equal(data, 'VALOR');
-		});
+		const res = await RedisManager.get('KEY', 'SUBKEY');
+
+		assert.equal(res, 'VALOR');
+
 	});
 
-	it('buscar algo no seteado', function() {
+	it('buscar algo no seteado', async() => {
 
-		return RedisManager.get('KEY1', 'SUBKEY1').then(data => {
-			assert.equal(data, null);
-		});
+		const res = await RedisManager.get('KEY1', 'SUBKEY1');
+
+		assert.equal(res, null);
+
 	});
 
-	it('borrar una key', function() {
+	it('borrar una key', async() => {
 
 		RedisManager.set('KEY', 'SUBKEY', 'VALOR');
 
 		RedisManager.reset('KEY');
 
-		return RedisManager.get('KEY', 'SUBKEY').then(data => {
-			assert.equal(data, null);
-		});
+		const res = await RedisManager.get('KEY', 'SUBKEY');
+
+		assert.equal(res, null);
 
 	});
 
-	it('resetear todo', function() {
+	it('resetear todo', async() => {
 
 		RedisManager.set('CLAVE', 'SUBCLAVE', 'VALOR');
 
 		RedisManager.reset();
 
-		return RedisManager.get('CLAVE', 'SUBCLAVE').then(data => {
-			assert.equal(data, null);
+		const res = await RedisManager.get('CLAVE', 'SUBCLAVE');
+
+		assert.equal(res, null);
+
+	});
+
+	it('get rejected', () => {
+
+		RedisManager.get().catch(err => {
+			assert.equal(err.message, 'GET - Missing Parametres.');
 		});
+
 	});
 
-	it('get rejected', async() => {
+	it('set rejected', () => {
 
-		return RedisManager.get().catch(err => {
-			expect(err).to.have.property('message');
+		RedisManager.set().catch(err => {
+			assert.equal(err.message, 'SET - Missing parametres.');
 		});
+
 	});
 
-	it('set rejected', async() => {
 
-		return RedisManager.set().catch(err => {
-			expect(err).to.have.property('message');
-		});
-	});
-
-	it('cliente ya creado', function() {
-
-		const redis = RedisManager;
-		redis.initialize();
-
-		assert.equal(redis.inited, true);
-	});
 });

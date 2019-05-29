@@ -19,29 +19,31 @@ describe('Memory Manager Tests', () => {
 		return MemoryManager.reset();
 	});
 
-	it('setear y getear en memoria', () => {
+	it('setear y getear en cache de memoria', async() => {
 
 		MemoryManager.set('KEY', 'SUBKEY', 'VALOR');
 
-		return MemoryManager.get('KEY', 'SUBKEY').then(data => {
-			assert.equal(data, 'VALOR');
-		});
+		const res = await MemoryManager.get('KEY', 'SUBKEY');
+
+		assert.equal(res, 'VALOR');
+
 	});
 
-	it('buscar algo no seteado', () => {
+	it('buscar algo no seteado', async() => {
 
-		return MemoryManager.get('CLAVE', 'SK').then(data => {
-			assert.equal(data, undefined);
-		});
+		const res = await MemoryManager.get('CLAVE', 'SK');
+
+		assert.equal(res, undefined);
+
 	});
 
-	it('eliminar una instancia', () => {
+	it('eliminar una entidad', () => {
 
 		MemoryManager.set('K1', 'SK1', 'VALOR-1');
 
 		MemoryManager.reset('K1');
 
-		assert(!MemoryManager.checkInstance('K1'));
+		assert.deepEqual(MemoryManager.checkInstance('K1'), false);
 
 	});
 
@@ -52,47 +54,44 @@ describe('Memory Manager Tests', () => {
 
 		MemoryManager.reset();
 
-		assert(!MemoryManager.checkInstance('FIZZ'));
-		assert(!MemoryManager.checkInstance('K-FIZZ'));
+		assert.deepEqual(MemoryManager.checkInstance('FIZZ'), false);
+		assert.deepEqual(MemoryManager.checkInstance('K-FIZZ'), false);
 
 	});
 
 	it('prune all', () => {
 
-		for(let i = 0; i < 100; i++)
+		for(let i = 0; i < 10; i++)
 			MemoryManager.set(`KEY${i}`, `SUB${i}`, `VALOR${i}`);
 
 		MemoryManager.prune();
 
-		setTimeout(() => {
-			MemoryManager.get('KEY1', 'SUB1').then(data => {
+		setTimeout(async() => {
+			await MemoryManager.get('KEY1', 'SUB1').then(data => {
 				assert.equal(data, undefined);
 			});
 		}, 1000);
 	});
 
-	it('prune all', () => {
+	it('prune all', async () => {
 
 		for(let i = 0; i < 100; i++)
 			MemoryManager.set(`KEY${i}`, `SUB${i}`, `VALOR${i}`);
 
-		MemoryManager.prune();
+		await MemoryManager.prune();
 
-		setTimeout(() => {
-			MemoryManager.get('KEY1', 'SUB1').then(data => {
-				assert.equal(data, 'VALOR1');
-			});
+		/* const data = await MemoryManager.get('KEY1', 'SUB1');
+		assert.equal(data, undefined); */
+
+		setTimeout( async () => {
+			const data = await MemoryManager.get('KEY1', 'SUB1');
+			assert.equal(data, undefined);
 		}, 1200);
 
-		setTimeout(() => {
-			MemoryManager.get('KEY1', 'SUB1').then(data => {
-				assert.equal(data, undefined);
-			});
-		}, 1500);
+		
 	});
+});
 
-	/* it('prune instance', () => {
+/* it('prune instance', () => {
 
 	}); */
-
-});

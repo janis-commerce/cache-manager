@@ -62,7 +62,7 @@ class MemoryManager {
 		if(!this.checkInstance(key)) {
 			this.instances[key] = new LRU({
 				max: 500,
-				maxAge: 1000 // 1 hour default max age
+				maxAge: 4500 // 1 hour default max age
 				// Implement dispose function if we are saving in cache a value that needs to be close gracefully: File descriptor, database...
 			});
 		}
@@ -172,7 +172,7 @@ class MemoryManager {
 	 * @param {string=} key Instance. Delete All by Default
 	 * @returns {Promise}
 	 */
-	static async prune(key = null) {
+	static async prune() {
 		return this.pruneAllInstances();
 	}
 

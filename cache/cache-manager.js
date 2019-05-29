@@ -8,7 +8,6 @@ const MemoryManager = require('./memory-manager');
 const STRATEGIES = ['memory', 'redis'];
 
 class CacheManager {
-
 	static set client(client) {
 		this._client = client;
 	}
@@ -17,78 +16,107 @@ class CacheManager {
 		return this._client;
 	}
 
-	static initialize(client) {    
-
+	/**
+   * Initialize All the Strategies.
+   * @param {string} client Name of the Client
+   */
+	static initialize(client) {
 		if(this.client)
-			return ;
+			return;
 
 		this.client = client;
-		// Inicializa
-		MemoryManager.iniciar(this.client);
+
+		MemoryManager.initialize(this.client);
 		RedisManager.initialize(this.client);
-		// Y limpia para empezar de 0
+		// Clean before start using.
 		MemoryManager.reset();
 		RedisManager.reset();
 
 		logger.info(`Cache cleared! Client: ${this.client || 'all'}`);
 	}
 
+	/**
+   * Returns Memory Manager. Needs to be intialized.
+   */
 	static get memory() {
 		return MemoryManager;
 	}
 
+	/**
+   * Returns Redis Manager. Needs to be intialized.
+   */
 	static get redis() {
 		return RedisManager;
 	}
 
+	/**
+   * Save date All strategies.
+   * @param {string} entity Entity name
+   * @param {string} params Parametres
+   * @param {*} results Values to be saved
+   */
 	static save(entity, params, results) {
-
 		this.memory.set(entity, params, results);
 		this.redis.set(entity, params, results);
 	}
 
+	/**
+   * Fetched data,in the fastest strategy.
+   * @param {string} entity Entity
+   * @param {string} params Parametres
+   * @param {*} results Values
+   */
 	static async fetch(entity, params, results) {
+		// Search in Memory (LRU) first
 
-		// Busco primero en memoria
-
-		let fetched = this.memory.get(entity, params, results);
+		let fetched = await this.memory.get(entity, params, results);
 
 		if(typeof fetched !== 'undefined') {
 			logger.info('Cache - Found in memory.');
 			return fetched;
 		}
 
-		// Busco en Redis
+		// If in the memory not Found, search in Redis
 
 		fetched = await this.redis.get(entity, params, results);
 
 		if(fetched !== null) {
-			// Si existe, carga en memoria
-			logger.info('Cache - Found in redis.');
-			this.memory.set(entity, params, results);
+			logger.info('Cache - Found in Redis.');
+			this.memory.set(entity, params, fetched);
 			return fetched;
 		}
-		// si no existe retorna null
-		return null;
 
+		logger.info('Cache - not found.');
+
+		return null;
 	}
 
-	static async _clean(entity, method) {
+	/**
+   * Clean the memory in every strategy avaible.
+   * @param {string} entity Entity
+   * @param {string} method Method to clean ('reset' or 'prune')
+   */
+	static async clean(entity, method) {
 		STRATEGIES.forEach(async strategy => {
-			await this[strategy][method](entity);
+			if(this[strategy][method])
+				await this[strategy][method](entity);
 		});
 	}
 
+	/**
+   * Prune
+   * @param {string} namespace
+   */
 	static async prune(namespace) {
-		await this._clean(namespace, 'prune');
+		await this.clean(namespace, 'prune');
 	}
 
+	/**
+   * Reset
+   * @param {string} namespace
+   */
 	static async reset(namespace) {
-		await this._clean(namespace, 'reset');
-	}
-
-	static close() {
-		RedisManager.close();
+		await this.clean(namespace, 'reset');
 	}
 
 }

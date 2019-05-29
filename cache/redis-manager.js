@@ -5,7 +5,6 @@ const md5 = require('md5');
 const path = require('path');
 const logger = require('@janiscommerce/logger');
 const redis = require('redis');
-// const config = require('../config/redis.json');
 
 /**
 *    RedisManager class - Static
