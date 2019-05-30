@@ -1,14 +1,14 @@
 'use strict';
 
 const assert = require('assert');
-// const chaiAsPromised = require('chai-as-promised');
+const sinon = require('sinon');
 const CacheManager = require('../index');
 
 
 describe('Cache Manager Test', () => {
 
 	before(() => {
-		return CacheManager.initialize();
+		CacheManager.initialize('Test');
 	});
 
 	it('get in memory cache', async() => {
@@ -46,4 +46,22 @@ describe('Cache Manager Test', () => {
 		assert.equal(result2, '{id: v2}');
 
 	});
+
+	it('prune cache memory', async() => {
+
+		const timer = sinon.useFakeTimers();
+
+		CacheManager.save('e11', 'sub-e11', 'value e11');
+
+		await CacheManager.prune('memory');
+
+		timer.tick(3610000);
+
+		const result1 = await CacheManager.memory.get('e11', 'sub-e11');
+
+		assert.equal(result1, undefined);
+
+	});
+
+	
 });

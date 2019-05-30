@@ -104,7 +104,7 @@ class CacheManager {
 	}
 
 	/**
-   * Prune
+   * Prune the memory cache for old entries
    * @param {string} namespace
    */
 	static async prune(namespace) {

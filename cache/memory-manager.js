@@ -70,6 +70,10 @@ class MemoryManager {
 		return this.instances[key];
 	}
 
+	static async getInstances() {
+		return this.instances;
+	}
+
 	/**
 	 * Returns the right format of Key-Subkey
 	 * @param {string} key Instance
@@ -134,8 +138,15 @@ class MemoryManager {
 	 */
 	static resetAllInstances() {
 
-		if(!this.instances)
+		// console.log(this.instances);
+
+		if(!this.instances) {
+			console.log('sin instancias');
 			return null;
+
+		}
+
+		console.log('borrando');
 
 		return Promise.all(
 			Object.keys(this.instances).map(key => this.resetInstance(key))
@@ -152,7 +163,7 @@ class MemoryManager {
 			if(this.checkInstance(key))
 				this.instances[key].reset();
 		});
-	}	
+	}
 
 	/**
 	 * Manually iterates over the entire cache proactively pruning old entries
@@ -161,18 +172,6 @@ class MemoryManager {
 	 */
 	static async prune() {
 		return this.pruneAllInstances();
-	}
-
-	/**
-	 * Prune a single Instance
-	 * @param {string} key Instance
-	 * @returns {Promise}
-	 */
-	static pruneInstance(key) {
-		return process.nextTick(() => {
-			if(this.checkInstance(key))
-				this.instances[key].prune();
-		});
 	}
 
 	/**
@@ -188,6 +187,19 @@ class MemoryManager {
 			Object.keys(this.instances).map(key => this.pruneInstance(key))
 		);
 	}
+
+	/**
+	 * Prune a single Instance
+	 * @param {string} key Instance
+	 * @returns {Promise}
+	 */
+	static pruneInstance(key) {
+		return process.nextTick(() => {
+			if(this.checkInstance(key))
+				this.instances[key].prune();
+		});
+	}
+
 
 }
 

@@ -9,20 +9,20 @@ const { MemoryManager } = require('../cache');
 describe('Memory Manager Tests', () => {
 
 	before(() => {
-		return MemoryManager.initialize();
+		MemoryManager.initialize('Memory');
 	});
 
-	after(() => {
-		return MemoryManager.reset();
+	afterEach(async() => {
+		await MemoryManager.reset();
 	});
 
 	it('setear y getear en cache de memoria', async() => {
 
-		MemoryManager.set('KEY', 'SUBKEY', 'VALOR');
+		MemoryManager.set('KEY', 'SUBKEY', { prop: 'tests' });
 
 		const res = await MemoryManager.get('KEY', 'SUBKEY');
 
-		assert.equal(res, 'VALOR');
+		assert.deepEqual(res, { prop: 'tests' });
 
 	});
 
@@ -34,22 +34,22 @@ describe('Memory Manager Tests', () => {
 
 	});
 
-	it('eliminar una entidad', () => {
+	it('eliminar una entidad', async() => {
 
 		MemoryManager.set('K1', 'SK1', 'VALOR-1');
 
-		MemoryManager.reset('K1');
+		await MemoryManager.reset('K1');
 
 		assert.deepEqual(MemoryManager.checkInstance('K1'), false);
 
 	});
 
-	it('resetear la cache memory', () => {
+	it('resetear la cache memory', async() => {
 
 		MemoryManager.set('FIZZ', 'MOD', 'SOFT');
 		MemoryManager.set('K-FIZZ', 'SK-MOD', 'K-SOFT');
 
-		MemoryManager.reset();
+		await MemoryManager.reset();
 
 		assert.deepEqual(MemoryManager.checkInstance('FIZZ'), false);
 		assert.deepEqual(MemoryManager.checkInstance('K-FIZZ'), false);
@@ -69,23 +69,31 @@ describe('Memory Manager Tests', () => {
 		const res = await MemoryManager.get('prune11', 'sub-prune11');
 
 		assert.equal(res, undefined);
-		
+
 	});
 
-	/* it('prune all 2', async () => {
+	it('get key instance', () => {
 
-		for(let i = 0; i < 100; i++)
-			MemoryManager.set(`KEY${i}`, `SUB${i}`, `VALOR${i}`);
+		MemoryManager.set('cl1', 'sb2', 'valor');
 
-		await MemoryManager.prune();
+		assert.equal(MemoryManager._getInstanceKey('cl1'), 'Testcl1');
+	});
 
-		const data = await MemoryManager.get('KEY1', 'SUB1');
-		assert.equal(data, undefined);
+	it('no instances', async() => {
 
-		setTimeout( async () => {
-			const data = await MemoryManager.get('KEY1', 'SUB1');
-			console.log('DATA : ', data)
-			assert.equal(data, undefined);
-		}, 1200);
-	}); */
+		const timer = sinon.useFakeTimers();
+
+
+		timer.tick(3000);
+		await MemoryManager.reset();
+
+
+		const instances = await MemoryManager.getInstances();
+
+		// console.log(instances)
+		console.log(Object.keys(MemoryManager.getInstances()).length === 0);
+
+
+		assert.equal(Object.keys(instances).length, 0);
+	});
 });
