@@ -2,12 +2,9 @@
 'use strict';
 
 const assert = require('assert');
-const chai = require('chai');
-const { expect } = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+const sinon = require('sinon');
 const { MemoryManager } = require('../cache');
 
-chai.use(chaiAsPromised);
 
 describe('Memory Manager Tests', () => {
 
@@ -59,39 +56,36 @@ describe('Memory Manager Tests', () => {
 
 	});
 
-	it('prune all', () => {
+	it('prune cache memory', async() => {
 
-		for(let i = 0; i < 10; i++)
-			MemoryManager.set(`KEY${i}`, `SUB${i}`, `VALOR${i}`);
+		const timer = sinon.useFakeTimers();
 
-		MemoryManager.prune();
+		MemoryManager.set('prune11', 'sub-prune11', 'value prune11');
 
-		setTimeout(async() => {
-			await MemoryManager.get('KEY1', 'SUB1').then(data => {
-				assert.equal(data, undefined);
-			});
-		}, 1000);
+		await MemoryManager.prune();
+
+		timer.tick(3610000);
+
+		const res = await MemoryManager.get('prune11', 'sub-prune11');
+
+		assert.equal(res, undefined);
+		
 	});
 
-	it('prune all', async () => {
+	/* it('prune all 2', async () => {
 
 		for(let i = 0; i < 100; i++)
 			MemoryManager.set(`KEY${i}`, `SUB${i}`, `VALOR${i}`);
 
 		await MemoryManager.prune();
 
-		/* const data = await MemoryManager.get('KEY1', 'SUB1');
-		assert.equal(data, undefined); */
+		const data = await MemoryManager.get('KEY1', 'SUB1');
+		assert.equal(data, undefined);
 
 		setTimeout( async () => {
 			const data = await MemoryManager.get('KEY1', 'SUB1');
+			console.log('DATA : ', data)
 			assert.equal(data, undefined);
 		}, 1200);
-
-		
-	});
-});
-
-/* it('prune instance', () => {
-
 	}); */
+});
