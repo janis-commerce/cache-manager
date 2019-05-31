@@ -8,24 +8,27 @@ const { RedisManager } = require('../cache');
 describe('Redis Manager', function() {
 
 	before(function() {
-		return RedisManager.initialize();
+		RedisManager.initialize();
 	});
 
 	after(function() {
-		return RedisManager.close();
+		RedisManager.close();
+
 	});
 
-	it('setter y getter', async() => {
+	it('set and get', async() => {
 
-		RedisManager.set('KEY', 'SUBKEY', 'VALOR');
+		RedisManager.set('KEY', 'SUBKEY', { value: 'VALOR' });
 
 		const res = await RedisManager.get('KEY', 'SUBKEY');
 
-		assert.equal(res, 'VALOR');
+		assert.deepEqual(res, { value: 'VALOR' });
 
 	});
 
-	it('buscar algo no seteado', async() => {
+	it('getting a value not set', async() => {
+
+		RedisManager.initialize();
 
 		const res = await RedisManager.get('KEY1', 'SUBKEY1');
 
@@ -33,11 +36,11 @@ describe('Redis Manager', function() {
 
 	});
 
-	it('borrar una key', async() => {
+	it('delete a key', async() => {
 
 		RedisManager.set('KEY', 'SUBKEY', 'VALOR');
 
-		RedisManager.reset('KEY');
+		await RedisManager.reset('KEY');
 
 		const res = await RedisManager.get('KEY', 'SUBKEY');
 
@@ -45,7 +48,7 @@ describe('Redis Manager', function() {
 
 	});
 
-	it('resetear todo', async() => {
+	it('resetear all', async() => {
 
 		RedisManager.set('CLAVE', 'SUBCLAVE', 'VALOR');
 
@@ -57,7 +60,7 @@ describe('Redis Manager', function() {
 
 	});
 
-	it('get rejected', () => {
+	it('get wrong', () => {
 
 		RedisManager.get().catch(err => {
 			assert.equal(err.message, 'GET - Missing Parametres.');
@@ -65,7 +68,7 @@ describe('Redis Manager', function() {
 
 	});
 
-	it('set rejected', () => {
+	it('set wrong', () => {
 
 		RedisManager.set().catch(err => {
 			assert.equal(err.message, 'SET - Missing parametres.');
@@ -73,5 +76,15 @@ describe('Redis Manager', function() {
 
 	});
 
+	it('redis ya inicializado', function() {
 
+		assert.equal(RedisManager.initialize(), undefined);
+
+	});
+
+	it('config path incorrect', function() {
+
+		assert.throws(() => RedisManager.cacheConfig('bad path'), Error);
+
+	});
 });

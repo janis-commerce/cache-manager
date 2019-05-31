@@ -63,5 +63,9 @@ describe('Cache Manager Test', () => {
 
 	});
 
-	
+	it('initialize', () => {
+		assert.equal(CacheManager.initialize(), undefined);
+	});
+
+
 });

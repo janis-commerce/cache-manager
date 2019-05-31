@@ -2,7 +2,6 @@
 
 'use strict';
 
-const sinon = require('sinon');
 const LRU = require('lru-cache');
 const { CacheManager, RedisManager, MemoryManager } = require('./cache');
 
@@ -116,18 +115,28 @@ const fede = async() => {
 	CacheManager.initialize('Fede');
 
 
-	/* CacheManager.save('k1', 'sk1', '{id: v1}');
-	CacheManager.save('k2', 'sk2', '{id: v2}');
+	CacheManager.save('k1', 'sk1', { id: 'v1' });
+	CacheManager.save('k2', 'sk2', 'hello friend');
 
-	await CacheManager.reset('k1', 'reset');
+	// save in all cache strategies
+	// CacheManager.save('key', 'subkey', { message: 'hello friend' })
 
-	const result = await CacheManager.fetch('k1', 'sk1');
-	const result2 = await CacheManager.fetch('k2', 'sk2');
+	// get data in the fastest strategy and then in the rest
+	/* CacheManager.fetch('key', 'subkey').then(data => {
+    	console.log(data) // 'value'
+	}) */
 
-	console.log('result ', result);
-	console.log('result2 ', result2); */
+	await CacheManager.reset('k2');
+
+	/* const result = await CacheManager.fetch('k1', 'sk1');
+	const result2 = await CacheManager.fetch('k2', 'sk2'); */
+
+	CacheManager.fetch('k1', 'sk1').then(data => console.log(data)).catch(err => console.log(err.message));
+
+	// console.log('result ', result);
+	// console.log('result2 ', result2);
 };
 
-// fede();
+fede();
 
 // redis();

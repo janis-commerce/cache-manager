@@ -15,18 +15,24 @@ class RedisManager {
      * Get the Redis Config JSON path
      */
 	static get configPath() {
+
 		return path.join(process.cwd(), 'config/redis.json');
 	}
 
+
 	/**
-     * Cache the Redis config
+     * Cache the Redis config.
+	* @param {String} route Config JSON path
      */
-	static _cacheConfig() {
+	static cacheConfig(pathconfig) {
+
+		const pathconfigs = pathconfig || this.configPath;
+
 		let config;
 
 		try {
-			/* eslint-disable global-require, import/no-dynamic-require */
-			config = require(this.configPath);
+			// eslint-disable-next-line import/no-dynamic-require
+			config = require(pathconfigs);
 		} catch(error) {
 			throw new Error('Invalid config path');
 		}
@@ -40,7 +46,7 @@ class RedisManager {
      */
 	static get config() {
 		if(!this._config)
-			this._cacheConfig();
+			this.cacheConfig();
 
 		return this._config;
 	}
@@ -60,7 +66,7 @@ class RedisManager {
 	/**
      * Prepares the params, adding MS prefix     *
     * @param {object} params The parameters
-    * @return {string} encoded parameters
+    * @return {String} encoded parameters
     */
 	static _prepareParams(params) {
 		return md5(JSON.stringify({
@@ -71,7 +77,7 @@ class RedisManager {
 
 	/**
      * Initialize a Redis Client in order to be ready to use.
-     * @param {string} client Name of the Client.
+     * @param {String} client Name of the Client.
      */
 	static initialize(client) {
 
@@ -80,7 +86,7 @@ class RedisManager {
 
 		this.keyPrefix = client;
 		this.clients = [];
-		this.inited = false;
+		this.inited = null;
 
 		this.client = this.createClient();
 		this.promisify(this.client);
@@ -89,7 +95,6 @@ class RedisManager {
 	/**
      *    Create a redis client
      *    @param {object} options - Redis client options
-     *    @param {boolean} [promise=true] - Whether to promisify methods or not. There are cases where we need an unmodified client (IE: to pass to socket.io adapter)
      *    @return {object} redis client
      */
 	static createClient(options = {}) {
@@ -98,13 +103,13 @@ class RedisManager {
 
 		const defaults = {
 			host,
-			port,
-			retry_strategy: data => {
+			port
+			/* retry_strategy: data => {
 				if(!this.inited)
 					return 5000; // If it never inited retry every 5 seconds.
 
 				return Math.min(data.total_retry_time || 1000, 30 * 1000); // Max retry of 30 seconds
-			}
+			} */
 		};
 
 		const client = redis.createClient({ ...defaults, ...options });
@@ -123,8 +128,6 @@ class RedisManager {
 
 	/**
      *    Promisify redis methods
-     *    @param {object} client - Redis client
-     *    @param {object} redis client
      */
 	static promisify() {
 
@@ -151,8 +154,8 @@ class RedisManager {
 
 	/**
      * Search the data
-     * @param {string} key Entity
-     * @param {params} subkey Parametres
+     * @param {String} key Entity
+     * @param {params} subkey Parametres, will be encryptic
      */
 	static async get(key, subkey) {
 		// If no data to search throws Error
@@ -164,31 +167,36 @@ class RedisManager {
 	}
 
 	/**
+	 *
+	 * @param {String} key
+	 */
+	static async reset(key = null) {
+		if(!key) // No Key, Delete All
+			await this.resetAll();
+		else // If only have key, Delete Entity
+			await this.resetEntity(key);
+	}
+
+	/**
      * Delete an Entity and all its registries
-     * @param {String} key Entidad
+     * @param {String} key Entity
      */
 	static async resetEntity(key) {
 		await this.client.del(this._getKey(key));
 	}
 
 	/**
-     * Delete All entities.
-     */
+	* Delete all entities.
+	*/
 	static async resetAll() {
 		await this.client.flushall('ASYNC');
 	}
 
 	/**
-     * Delete values in memory
-     *@param {*} key Entity
-     *@param {*} subkey Parametres
-     */
-	static async reset(key, subkey = null) {
-		if(!key) // No Key, Delete All
-			await this.resetAll();
-		else // If only have key, Delete Entity
-			await this.resetEntity(key);
-	}
+	* Delete values in memory
+	*@param {*} key Entity
+	*@param {*} subkey Parametres
+	*/
 
 	/**
      * Close connection

@@ -70,10 +70,6 @@ class MemoryManager {
 		return this.instances[key];
 	}
 
-	static async getInstances() {
-		return this.instances;
-	}
-
 	/**
 	 * Returns the right format of Key-Subkey
 	 * @param {string} key Instance
@@ -138,15 +134,9 @@ class MemoryManager {
 	 */
 	static resetAllInstances() {
 
-		// console.log(this.instances);
-
-		if(!this.instances) {
-			console.log('sin instancias');
+		if(!this.instances)
 			return null;
 
-		}
-
-		console.log('borrando');
 
 		return Promise.all(
 			Object.keys(this.instances).map(key => this.resetInstance(key))

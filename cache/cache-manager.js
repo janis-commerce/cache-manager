@@ -105,18 +105,17 @@ class CacheManager {
 
 	/**
    * Prune the memory cache for old entries
-   * @param {string} namespace
    */
-	static async prune(namespace) {
-		await this.clean(namespace, 'prune');
+	static async prune(entity) {
+		await this.clean(entity, 'prune');
 	}
 
 	/**
    * Reset
-   * @param {string} namespace
+   * @param {string} entity
    */
-	static async reset(namespace) {
-		await this.clean(namespace, 'reset');
+	static async reset(entity) {
+		await this.clean(entity, 'reset');
 	}
 
 }

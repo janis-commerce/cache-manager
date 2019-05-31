@@ -79,7 +79,7 @@ describe('Memory Manager Tests', () => {
 		assert.equal(MemoryManager._getInstanceKey('cl1'), 'Testcl1');
 	});
 
-	it('no instances', async() => {
+	/* it('no instances', async() => {
 
 		const timer = sinon.useFakeTimers();
 
@@ -95,5 +95,5 @@ describe('Memory Manager Tests', () => {
 
 
 		assert.equal(Object.keys(instances).length, 0);
-	});
+	}); */
 });
