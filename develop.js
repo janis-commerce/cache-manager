@@ -2,8 +2,17 @@
 
 'use strict';
 
-const { CacheManager, RedisManager, MemoryManager } = require('./cache');
 const sinon = require('sinon');
+const LRU = require('lru-cache');
+const { CacheManager, RedisManager, MemoryManager } = require('./cache');
+
+const opt = {
+	max: 500,
+	length(n, key) { return n * 2 + key.length; },
+	dispose(key, n) { n.close(); },
+	maxAge: 1000 * 60 * 60
+};
+
 
 async function mem() {
 
@@ -56,9 +65,7 @@ async function mem() {
 	// console.log(Object.keys(ins.length === 3));
 
 }
-
-
-mem();
+// mem();
 
 //  memory manager
 function memoManager() {
