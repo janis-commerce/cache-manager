@@ -11,6 +11,10 @@ describe('Cache Manager Test', () => {
 		CacheManager.initialize('Test');
 	});
 
+	after(() => {
+		CacheManager.reset();
+	});
+
 	it('get in memory cache', async() => {
 
 		CacheManager.save('KEY', 'SUB', '{id: 1}');
@@ -35,36 +39,29 @@ describe('Cache Manager Test', () => {
 	it('reset key in cache', async() => {
 
 		CacheManager.save('k1', 'sk1', '{id: v1}');
-		CacheManager.save('k2', 'sk2', '{id: v2}');
 
-		await CacheManager.reset('k1', 'reset');
+		await CacheManager.reset('k1');
 
 		const result = await CacheManager.fetch('k1', 'sk1');
-		const result2 = await CacheManager.fetch('k2', 'sk2');
 
 		assert.equal(result, null);
-		assert.equal(result2, '{id: v2}');
 
 	});
 
-	it('prune cache memory', async() => {
-
-		const timer = sinon.useFakeTimers();
-
-		CacheManager.save('e11', 'sub-e11', 'value e11');
-
-		await CacheManager.prune('memory');
-
-		timer.tick(3610000);
-
-		const result1 = await CacheManager.memory.get('e11', 'sub-e11');
-
-		assert.equal(result1, undefined);
-
-	});
-
-	it('initialize', () => {
+	it('there can not be two instances', () => {
 		assert.equal(CacheManager.initialize(), undefined);
+	});
+
+	it('reset all', async() => {
+
+		CacheManager.save('entity', 'sub', 'reset all test ');
+
+		await CacheManager.reset();
+
+		const res = await CacheManager.fetch('entity', 'sub');
+
+		assert.equal(res, null);
+
 	});
 
 

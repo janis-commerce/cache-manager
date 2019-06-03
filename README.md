@@ -30,10 +30,10 @@ CacheManager.save('key', 'subkey', { message: 'hello friend' })
 //or
 
 // save data only in memory cache
-CacheManager.memory.save('mem', 'subkey', { cache: 'memory' })
+CacheManager.memory.set('mem', 'subkey', { cache: 'memory' })
 
 // save data only in redis cache
-CacheManager.redis.save('red', 'subkey', { cache: 'redis' })
+CacheManager.redis.set('red', 'subkey', { cache: 'redis' })
 
 
 ```
@@ -58,21 +58,33 @@ CacheManager.redis.get('red', 'subkey').then( data => {
 
 ### reset cache
 ```js
-// reset all entities
+// reset all entities in all strategies
 await CacheManager.reset();
 
-// reset only a specific entity
-await CacheManager.reset('key');
+// reset only a specific entity in all strategies
+await CacheManager.resetEntity('key');
 
 //or
 //reset only a specific entity in memory
-await CacheManager.memory.reset('key)
+await CacheManager.memory.reset('key')
 
 //reset only a specific entity in redis
-await CacheManager.redis.reset('key)
+await CacheManager.redis.reset('key')
 
 ```
+## API
 
+- `initialize()`
+Initialize the cache manager
+
+- `save('key', 'subkey', 'value')`
+Save data in memory and redis
+- `fetched('key', 'subkey')`
+Fetched data,in the fastest strategy
+- `reset()`
+Delete all entities in cache
+- `resetEntity('key')`
+Delete a especific entity in cache
 
 
 

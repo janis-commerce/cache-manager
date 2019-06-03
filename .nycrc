@@ -1,6 +1,10 @@
 {
 	"exclude": [
-		".eslintrc.js", "tests/","develop.js"
+		".eslintrc.js", 
+		"tests/",
+		"develop.js",
+		"coverage/",
+		".travis.yml"
 	],
 	"cache": true,
 	"all": true,

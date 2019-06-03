@@ -14,7 +14,7 @@ class RedisManager {
 	/**
      * Get the Redis Config JSON path
      */
-	static get configPath() {
+	static configPath() {
 
 		return path.join(process.cwd(), 'config/redis.json');
 	}
@@ -23,15 +23,14 @@ class RedisManager {
      * Cache the Redis config.
 	* @param {String} route Config JSON path
      */
-	static cacheConfig(pathconfig) {
+	static cacheConfig() {
 
-		const pathconfigs = pathconfig || this.configPath;
 
 		let config;
 
 		try {
 			// eslint-disable-next-line import/no-dynamic-require
-			config = require(pathconfigs);
+			config = require(this.configPath());
 		} catch(error) {
 			throw new Error('Invalid config path');
 		}
@@ -114,7 +113,7 @@ class RedisManager {
 		const client = redis.createClient({ ...defaults, ...options });
 
 		client.on('connect', () => {
-			logger.info(`Redis - connected to ${host}:${port}`);
+			logger.info(`Redis - connected to ${host}:${port} - Client: ${this.keyPrefix}`);
 			this.inited = true;
 		});
 
@@ -166,7 +165,7 @@ class RedisManager {
 	}
 
 	/**
-	 *
+	 * Clear the cache entirely
 	 * @param {String} key
 	 */
 	static async reset(key = null) {
@@ -191,12 +190,7 @@ class RedisManager {
 		await this.client.flushall('ASYNC');
 	}
 
-	/**
-	* Delete values in memory
-	*@param {*} key Entity
-	*@param {*} subkey Parametres
-	*/
-
+	
 	/**
      * Close connection
      */

@@ -32,7 +32,6 @@ class CacheManager {
 		MemoryManager.reset();
 		RedisManager.reset();
 
-		logger.info(`Cache cleared! Client: ${this.client || 'all'}`);
 	}
 
 	/**
@@ -91,31 +90,49 @@ class CacheManager {
 		return null;
 	}
 
+
+	/**
+   * Reset cache memorys in all strategies
+   * @param {string} entity Entity
+   */
+	static async reset(key = null) {
+
+		if(key) 
+			return this.resetEntity(key);		
+
+		return this.cleanAll('reset');
+	}
+
 	/**
    * Clean the memory in every strategy avaible.
    * @param {string} entity Entity
    * @param {string} method Method to clean ('reset' or 'prune')
    */
-	static async clean(entity, method) {
+	static async cleanAll(method) {
 		STRATEGIES.forEach(async strategy => {
-			if(this[strategy][method])
-				await this[strategy][method](entity);
+			console.log('entro a borrar');
+
+			await this[strategy][method]();
 		});
 	}
 
 	/**
-   * Prune the memory cache for old entries
-   */
-	static async prune(entity) {
-		await this.clean(entity, 'prune');
+	 * Reset entity in all strategies
+	 * @param {String} entity Entity
+	 */
+	static async resetEntity(entity) {
+		await this.cleanEntity(entity, 'reset');
 	}
 
 	/**
-   * Reset
-   * @param {string} entity
+   * Clean only the entity from the cache
+   * @param {string} entity Entity
+   * @param {string} method Method to clean ('reset')
    */
-	static async reset(entity) {
-		await this.clean(entity, 'reset');
+	static async cleanEntity(entity, method) {
+		STRATEGIES.forEach(async strategy => {
+			await this[strategy][method](entity);
+		});
 	}
 
 }

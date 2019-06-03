@@ -4,16 +4,23 @@
 
 const assert = require('assert');
 const { RedisManager } = require('../cache');
+const sinon = require('sinon');
 
 describe('Redis Manager', function() {
 
 	before(function() {
-		RedisManager.initialize();
+		RedisManager.initialize('Test');
 	});
 
 	after(function() {
 		RedisManager.close();
 
+	});
+
+	it('config path incorrect', function() {
+		const stub = sinon.stub(RedisManager, 'configPath').returns('bad-config.json');
+		assert.throws(() => RedisManager.cacheConfig(), Error);
+		stub.restore();
 	});
 
 	it('set and get', async() => {
@@ -82,9 +89,4 @@ describe('Redis Manager', function() {
 
 	});
 
-	it('config path incorrect', function() {
-
-		assert.throws(() => RedisManager.cacheConfig('bad path'), Error);
-
-	});
 });

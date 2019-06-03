@@ -2,6 +2,7 @@
 
 const LRU = require('lru-cache');
 const md5 = require('md5');
+const logger = require('@janiscommerce/logger');
 
 /**
  *	MemoryManager class - Static
@@ -31,6 +32,7 @@ class MemoryManager {
 
 		this.instances = {};
 		this.keyPrefix = client;
+		logger.info(`Cache memory - Client: ${this.keyPrefix || 'all'}`);
 	}
 
 	/**
@@ -38,7 +40,7 @@ class MemoryManager {
 	 * @param {string} key
 	 * @returns {string}
 	 */
-	static _getInstanceKey(key) {
+	static getInstanceKey(key) {
 		return `${this.keyPrefix}${key}`;
 	}
 
@@ -57,7 +59,8 @@ class MemoryManager {
 	 * @returns {object} LRU-Instance
 	 */
 	static getInstance(key) {
-		key = this._getInstanceKey(key);
+		key = this.getInstanceKey(key);
+
 
 		if(!this.checkInstance(key)) {
 			this.instances[key] = new LRU({
@@ -121,25 +124,24 @@ class MemoryManager {
 	 */
 	static async reset(key = null) {
 		if(key) {
-			key = this._getInstanceKey(key);
-			if(this.checkInstance(key))
-				return this.resetInstance(key);
-		} else
-			return this.resetAllInstances();
+			key = this.getInstanceKey(key);
+			if(this.checkInstance(key)) 
+				return this.resetEntity(key);
+			 return;
+		} return this.resetAll();
 	}
 
 	/**
 	 * Delete all instances on the next loop
 	 * @returns {Array} Array length = Number of Instances deleted
 	 */
-	static resetAllInstances() {
+	static resetAll() {
 
-		if(!this.instances)
+		if(Object.keys(this.instances).length === 0)
 			return null;
 
-
 		return Promise.all(
-			Object.keys(this.instances).map(key => this.resetInstance(key))
+			Object.keys(this.instances).map(key => this.resetEntity(key))
 		);
 	}
 
@@ -148,11 +150,10 @@ class MemoryManager {
 	 * @param {string} key Instance
 	 * @returns {Promise}
 	 */
-	static async resetInstance(key) {
+	static async resetEntity(key) {
 
 		if(this.checkInstance(key))
 			this.instances[key].reset();
-
 	}
 
 	/**
@@ -161,29 +162,29 @@ class MemoryManager {
 	 * @returns {Promise}
 	 */
 	static async prune() {
-		return this.pruneAllInstances();
+		return this.pruneAll();
 	}
 
 	/**
 	 * Prune All Instances
 	 * @returns {Promise}
 	 */
-	static pruneAllInstances() {
+	static pruneAll() {
 
-		if(!this.instances)
+		if(Object.keys(this.instances).length === 0)
 			return null;
 
 		return Promise.all(
-			Object.keys(this.instances).map(key => this.pruneInstance(key))
+			Object.keys(this.instances).map(key => this.pruneEntity(key))
 		);
 	}
 
 	/**
 	 * Prune a single Instance
-	 * @param {string} key Instance
+	 * @param {string} key Entity
 	 * @returns {Promise}
 	 */
-	static pruneInstance(key) {
+	static pruneEntity(key) {
 
 		if(this.checkInstance(key))
 			this.instances[key].prune();

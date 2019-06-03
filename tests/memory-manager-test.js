@@ -9,11 +9,11 @@ const { MemoryManager } = require('../cache');
 describe('Memory Manager Tests', () => {
 
 	before(() => {
-		MemoryManager.initialize('Memory');
+		MemoryManager.initialize('Test');
 	});
 
-	afterEach(async() => {
-		await MemoryManager.reset();
+	after(() => {
+		MemoryManager.reset();
 	});
 
 	it('set and get', async() => {
@@ -76,6 +76,21 @@ describe('Memory Manager Tests', () => {
 
 		MemoryManager.set('cl1', 'sb2', 'valor');
 
-		assert.equal(MemoryManager._getInstanceKey('cl1'), 'Testcl1');
+		assert.equal(MemoryManager.getInstanceKey('cl1'), 'Testcl1');
+	});
+
+	it('reset with no instances', () => {
+		MemoryManager.instances = {};
+		assert.equal(MemoryManager.resetAll(), null);
+	});
+
+	it('prune with no instances', () => {
+		MemoryManager.instances = {};
+		assert.equal(MemoryManager.pruneAll(), null);
+	});
+
+	it('delete key no set', async() => {
+
+		assert.equal(await MemoryManager.reset('some key'), undefined);
 	});
 });
