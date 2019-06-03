@@ -116,7 +116,7 @@ class MemoryManager {
 
 	/**
 	 * Delete values in memory on the next loop
-	 * @param {string=} key Instance. Delete All by Default
+	 * @param {string=} key entity. Delete All by Default
 	 * @returns {Promise}
 	 */
 	static async reset(key = null) {
@@ -149,10 +149,10 @@ class MemoryManager {
 	 * @returns {Promise}
 	 */
 	static async resetInstance(key) {
-		return process.nextTick(() => {
-			if(this.checkInstance(key))
-				this.instances[key].reset();
-		});
+
+		if(this.checkInstance(key))
+			this.instances[key].reset();
+
 	}
 
 	/**
@@ -184,10 +184,10 @@ class MemoryManager {
 	 * @returns {Promise}
 	 */
 	static pruneInstance(key) {
-		return process.nextTick(() => {
-			if(this.checkInstance(key))
-				this.instances[key].prune();
-		});
+
+		if(this.checkInstance(key))
+			this.instances[key].prune();
+
 	}
 
 

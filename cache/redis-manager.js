@@ -19,7 +19,6 @@ class RedisManager {
 		return path.join(process.cwd(), 'config/redis.json');
 	}
 
-
 	/**
      * Cache the Redis config.
 	* @param {String} route Config JSON path

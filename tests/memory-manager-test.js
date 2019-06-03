@@ -16,7 +16,7 @@ describe('Memory Manager Tests', () => {
 		await MemoryManager.reset();
 	});
 
-	it('setear y getear en cache de memoria', async() => {
+	it('set and get', async() => {
 
 		MemoryManager.set('KEY', 'SUBKEY', { prop: 'tests' });
 
@@ -26,7 +26,7 @@ describe('Memory Manager Tests', () => {
 
 	});
 
-	it('buscar algo no seteado', async() => {
+	it('getting a value not set', async() => {
 
 		const res = await MemoryManager.get('CLAVE', 'SK');
 
@@ -34,7 +34,7 @@ describe('Memory Manager Tests', () => {
 
 	});
 
-	it('eliminar una entidad', async() => {
+	it('delete a entity', async() => {
 
 		MemoryManager.set('K1', 'SK1', 'VALOR-1');
 
@@ -44,7 +44,7 @@ describe('Memory Manager Tests', () => {
 
 	});
 
-	it('resetear la cache memory', async() => {
+	it('reset cache', async() => {
 
 		MemoryManager.set('FIZZ', 'MOD', 'SOFT');
 		MemoryManager.set('K-FIZZ', 'SK-MOD', 'K-SOFT');
@@ -78,22 +78,4 @@ describe('Memory Manager Tests', () => {
 
 		assert.equal(MemoryManager._getInstanceKey('cl1'), 'Testcl1');
 	});
-
-	/* it('no instances', async() => {
-
-		const timer = sinon.useFakeTimers();
-
-
-		timer.tick(3000);
-		await MemoryManager.reset();
-
-
-		const instances = await MemoryManager.getInstances();
-
-		// console.log(instances)
-		console.log(Object.keys(MemoryManager.getInstances()).length === 0);
-
-
-		assert.equal(Object.keys(instances).length, 0);
-	}); */
 });
