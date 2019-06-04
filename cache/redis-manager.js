@@ -96,14 +96,14 @@ class RedisManager {
      */
 	static createClient(options = {}) {
 		const host = this.config.host || 'localhost';
-		const port = this.config.port || 6379;
+		const port = this.config.port || 6739;
 
 		const defaults = {
 			host,
 			port,
 			retry_strategy: data => {
 				if(!this.inited)
-					return 5000; // If it never inited retry every 5 seconds.
+					return 2000; // If it never inited retry every 5 seconds.
 
 				return Math.min(data.total_retry_time || 1000, 30 * 1000); // Max retry of 30 seconds
 			}
@@ -116,7 +116,9 @@ class RedisManager {
 			this.inited = true;
 		});
 
-		client.on('error', err => console.log(err.message));
+		// client.on('error', () => console.log('error'));
+
+		client.on('reconnecting', () => logger.warn('Redis - reconnecting'));
 
 		this.clients.push(client); // for close latter
 

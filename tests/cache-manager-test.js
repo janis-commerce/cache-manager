@@ -1,19 +1,28 @@
 'use strict';
 
 const assert = require('assert');
-const sinon = require('sinon');
+const sandbox = require('sinon').createSandbox();
+const redisMock = require('redis-mock');
 const CacheManager = require('../index');
 
 
 describe('Cache Manager Test', () => {
 
+	let redisClient;
+
 	before(() => {
+		redisClient = sandbox
+			.stub(CacheManager.redis, 'createClient')
+			.returns(redisMock.createClient());
+
 		CacheManager.initialize('Test');
 	});
 
 	after(() => {
 		CacheManager.reset();
+		redisClient.restore();
 	});
+
 
 	it('get in memory cache', async() => {
 

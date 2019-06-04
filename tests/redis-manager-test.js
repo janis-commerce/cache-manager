@@ -3,22 +3,31 @@
 'use strict';
 
 const assert = require('assert');
+const sandbox = require('sinon').createSandbox();
+const redisMock = require('redis-mock');
 const { RedisManager } = require('../cache');
-const sinon = require('sinon');
 
 describe('Redis Manager', function() {
 
+	let redisClient;
+
 	before(function() {
+
+		redisClient = sandbox
+			.stub(RedisManager, 'createClient')
+			.returns(redisMock.createClient());
+
 		RedisManager.initialize('Test');
 	});
 
 	after(function() {
 		RedisManager.close();
 
+		redisClient.restore();
 	});
 
 	it('config path incorrect', function() {
-		const stub = sinon.stub(RedisManager, 'configPath').returns('bad-config.json');
+		const stub = sandbox.stub(RedisManager, 'configPath').returns('bad-config.json');
 		assert.throws(() => RedisManager.cacheConfig(), Error);
 		stub.restore();
 	});
