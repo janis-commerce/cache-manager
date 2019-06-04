@@ -79,7 +79,7 @@ describe('Memory Manager Tests', () => {
 		assert.equal(MemoryManager.getInstanceKey('cl1'), 'Testcl1');
 	});
 
-	it('reset with no instances', () => {
+	/* it('reset with no instances', () => {
 		MemoryManager.instances = {};
 		assert.equal(MemoryManager.resetAll(), null);
 	});
@@ -87,10 +87,20 @@ describe('Memory Manager Tests', () => {
 	it('prune with no instances', () => {
 		MemoryManager.instances = {};
 		assert.equal(MemoryManager.pruneAll(), null);
-	});
+	}); */
 
 	it('delete key no set', async() => {
 
 		assert.equal(await MemoryManager.reset('some key'), undefined);
+	});
+
+	it('get key with subkey', () => {
+
+		assert.equal(MemoryManager._getKey('key', 'sub'), 'key-sub');
+	});
+
+	it('key without subkey', () => {
+
+		assert.equal(MemoryManager._getKey('key'), 'key');
 	});
 });

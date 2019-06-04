@@ -43,7 +43,7 @@ function redismocks() {
 	});
 }
 
-redismocks();
+// redismocks();
 
 
 //  memory manager
@@ -101,4 +101,4 @@ async function rediss() {
 	}, 5000);
 }
 
-// rediss();
+rediss();

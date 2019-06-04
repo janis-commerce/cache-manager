@@ -97,8 +97,8 @@ class CacheManager {
    */
 	static async reset(key = null) {
 
-		if(key) 
-			return this.resetEntity(key);		
+		if(key)
+			return this.resetEntity(key);
 
 		return this.cleanAll('reset');
 	}

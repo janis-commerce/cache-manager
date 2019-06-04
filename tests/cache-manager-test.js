@@ -12,7 +12,7 @@ describe('Cache Manager Test', () => {
 
 	before(() => {
 		redisClient = sandbox
-			.stub(CacheManager.redis, 'createClient')
+			.stub(CacheManager.redis, 'clientRedis')
 			.returns(redisMock.createClient());
 
 		CacheManager.initialize('Test');

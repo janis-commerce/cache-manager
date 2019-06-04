@@ -6,96 +6,103 @@ const assert = require('assert');
 const sandbox = require('sinon').createSandbox();
 const redisMock = require('redis-mock');
 const { RedisManager } = require('../cache');
+const redis = require('redis');
 
 describe('Redis Manager', function() {
 
-	let redisClient;
+	context('con mocks', () => {
+		let redisClient;
 
-	before(function() {
+		before(function() {
 
-		redisClient = sandbox
-			.stub(RedisManager, 'createClient')
-			.returns(redisMock.createClient());
+			redisClient = sandbox
+				.stub(RedisManager, 'clientRedis')
+				.returns(redisMock.createClient());
 
-		RedisManager.initialize('Test');
-	});
-
-	after(function() {
-		RedisManager.close();
-
-		redisClient.restore();
-	});
-
-	it('config path incorrect', function() {
-		const stub = sandbox.stub(RedisManager, 'configPath').returns('bad-config.json');
-		assert.throws(() => RedisManager.cacheConfig(), Error);
-		stub.restore();
-	});
-
-	it('set and get', async() => {
-
-		RedisManager.set('KEY', 'SUBKEY', { value: 'VALOR' });
-
-		const res = await RedisManager.get('KEY', 'SUBKEY');
-
-		assert.deepEqual(res, { value: 'VALOR' });
-
-	});
-
-	it('getting a value not set', async() => {
-
-		RedisManager.initialize();
-
-		const res = await RedisManager.get('KEY1', 'SUBKEY1');
-
-		assert.equal(res, null);
-
-	});
-
-	it('delete a key', async() => {
-
-		RedisManager.set('KEY', 'SUBKEY', 'VALOR');
-
-		await RedisManager.reset('KEY');
-
-		const res = await RedisManager.get('KEY', 'SUBKEY');
-
-		assert.equal(res, null);
-
-	});
-
-	it('resetear all', async() => {
-
-		RedisManager.set('CLAVE', 'SUBCLAVE', 'VALOR');
-
-		RedisManager.reset();
-
-		const res = await RedisManager.get('CLAVE', 'SUBCLAVE');
-
-		assert.equal(res, null);
-
-	});
-
-	it('get wrong', () => {
-
-		RedisManager.get().catch(err => {
-			assert.equal(err.message, 'GET - Missing Parametres.');
+			RedisManager.initialize('Test');
 		});
 
-	});
+		after(function() {
+			RedisManager.close();
 
-	it('set wrong', () => {
-
-		RedisManager.set().catch(err => {
-			assert.equal(err.message, 'SET - Missing parametres.');
+			redisClient.restore();
 		});
 
+		it('config path incorrect', function() {
+			const stub = sandbox.stub(RedisManager, 'configPath').get(() => {
+				return 'bad-path-config.json';
+			});
+			assert.throws(() => RedisManager.cacheConfig(), Error);
+			stub.restore();
+		});
+
+		it('set and get', async() => {
+
+			RedisManager.set('KEY', 'SUBKEY', { value: 'VALOR' });
+
+			const res = await RedisManager.get('KEY', 'SUBKEY');
+
+			assert.deepEqual(res, { value: 'VALOR' });
+
+		});
+
+		it('getting a value not set', async() => {
+
+			RedisManager.initialize();
+
+			const res = await RedisManager.get('KEY1', 'SUBKEY1');
+
+			assert.equal(res, null);
+
+		});
+
+		it('delete a key', async() => {
+
+			RedisManager.set('KEY', 'SUBKEY', 'VALOR');
+
+			await RedisManager.reset('KEY');
+
+			const res = await RedisManager.get('KEY', 'SUBKEY');
+
+			assert.equal(res, null);
+
+		});
+
+		it('resetear all', async() => {
+
+			RedisManager.set('CLAVE', 'SUBCLAVE', 'VALOR');
+
+			RedisManager.reset();
+
+			const res = await RedisManager.get('CLAVE', 'SUBCLAVE');
+
+			assert.equal(res, null);
+
+		});
+
+		it('get wrong', () => {
+
+			RedisManager.get().catch(err => {
+				assert.equal(err.message, 'GET - Missing Parametres.');
+			});
+
+		});
+
+		it('set wrong', () => {
+
+			RedisManager.set().catch(err => {
+				assert.equal(err.message, 'SET - Missing parametres.');
+			});
+
+		});
+
+		it('redis ya inicializado', function() {
+
+			assert.equal(RedisManager.initialize(), undefined);
+
+		});
+
+		it('pending')
+
 	});
-
-	it('redis ya inicializado', function() {
-
-		assert.equal(RedisManager.initialize(), undefined);
-
-	});
-
 });

@@ -14,7 +14,7 @@ class RedisManager {
 	/**
      * Get the Redis Config JSON path
      */
-	static configPath() {
+	static get configPath() {
 
 		return path.join(process.cwd(), 'config/redis.json');
 	}
@@ -28,8 +28,7 @@ class RedisManager {
 		let config;
 
 		try {
-			// eslint-disable-next-line import/no-dynamic-require
-			config = require(this.configPath());
+			config = require(this.configPath);
 		} catch(error) {
 			throw new Error('Invalid config path');
 		}
@@ -100,29 +99,35 @@ class RedisManager {
 
 		const defaults = {
 			host,
-			port,
-			retry_strategy: data => {
+			port
+			/* retry_strategy: data => {
 				if(!this.inited)
-					return 2000; // If it never inited retry every 5 seconds.
+					return 1000; // If it never inited retry every 5 seconds.
 
 				return Math.min(data.total_retry_time || 1000, 30 * 1000); // Max retry of 30 seconds
-			}
+			} */
 		};
 
-		const client = redis.createClient({ ...defaults, ...options });
+		const client = RedisManager.clientRedis(defaults, options);
 
 		client.on('connect', () => {
 			logger.info(`Redis - connected to ${host}:${port} - Client: ${this.keyPrefix}`);
 			this.inited = true;
 		});
 
-		// client.on('error', () => console.log('error'));
+		client.on('error', err => logger.error(err.message));
 
-		client.on('reconnecting', () => logger.warn('Redis - reconnecting'));
+		client.on('reconnecting', () => {
+			logger.warn('Redis - reconnecting');
+		});
 
 		this.clients.push(client); // for close latter
 
 		return client;
+	}
+
+	static clientRedis(defaults, options) {
+		return redis.createClient({ ...defaults, ...options });
 	}
 
 	/**
@@ -197,10 +202,11 @@ class RedisManager {
      */
 	static close() {
 		return Promise.all(this.clients.map(client => {
-			const promise = new Promise(resolve => client.on('end', () => {
-				logger.info('Redis - server connection has closed');
+
+			const promise = new Promise(resolve => {
+				client.on('end', () => logger.info('Redis - server connection has closed'));
 				resolve();
-			}));
+			});
 
 			client.quit();
 

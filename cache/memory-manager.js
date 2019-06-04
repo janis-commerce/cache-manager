@@ -32,8 +32,11 @@ class MemoryManager {
 
 		this.instances = {};
 		this.keyPrefix = client;
-		logger.info(`Cache memory - Client: ${this.keyPrefix || 'all'}`);
+		logger.info(`Cache memory - Client: ${this.keyPrefix} '}`);
 	}
+
+	/* 
+	 */
 
 	/**
 	 * Returns the correct name of the Key
@@ -79,7 +82,7 @@ class MemoryManager {
 	 * @param {string} subkey Parametres
 	 * @returns {string}
 	 */
-	static _getKey(key, subkey) {
+	static _getKey(key, subkey = '') {
 		return subkey !== '' ? `${key}-${subkey}` : key;
 	}
 
@@ -125,7 +128,7 @@ class MemoryManager {
 	static async reset(key = null) {
 		if(key) {
 			key = this.getInstanceKey(key);
-			if(this.checkInstance(key)) 
+			if(this.checkInstance(key))
 				return this.resetEntity(key);
 			 return;
 		} return this.resetAll();
@@ -152,7 +155,6 @@ class MemoryManager {
 	 */
 	static async resetEntity(key) {
 
-		if(this.checkInstance(key))
 			this.instances[key].reset();
 	}
 
@@ -171,9 +173,6 @@ class MemoryManager {
 	 */
 	static pruneAll() {
 
-		if(Object.keys(this.instances).length === 0)
-			return null;
-
 		return Promise.all(
 			Object.keys(this.instances).map(key => this.pruneEntity(key))
 		);
@@ -186,7 +185,6 @@ class MemoryManager {
 	 */
 	static pruneEntity(key) {
 
-		if(this.checkInstance(key))
 			this.instances[key].prune();
 
 	}
