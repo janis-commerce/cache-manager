@@ -7,9 +7,7 @@
     "test": "export TEST_ENV=true; mocha --exit -R nyan --recursive tests/",
     "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive",
     "coverage": "nyc npm test",
-    "test-ci": "nyc --reporter=html --reporter=text mocha --recursive tests/",
-    "build": "docker-compose build",
-    "up": "docker-compose up"
+    "test-ci": "nyc --reporter=html --reporter=text mocha --recursive tests/"
   },
   "repository": {
     "type": "git",

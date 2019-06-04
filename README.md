@@ -47,12 +47,12 @@ CacheManager.fetch('key', 'subkey').then(data => {
 //or
 // fetched data from memory
 CacheManager.memory.get('mem', 'subkey').then( data => {
-    console.log(data)
+    console.log(data) // { cache: 'memory' }
 })
 
 // fetched data from redis
 CacheManager.redis.get('red', 'subkey').then( data => {
-    console.log(data)
+    console.log(data) // { cache: 'redis' }
 })
 ```
 
@@ -64,27 +64,53 @@ await CacheManager.reset();
 // reset only a specific entity in all strategies
 await CacheManager.resetEntity('key');
 
-//or
+//cache memory
+// reset all in cache memory
+await CacheManager.memory.reset()
+
 //reset only a specific entity in memory
 await CacheManager.memory.reset('key')
+
+// reset all in redis
+await CacheManager.redis.reset()
 
 //reset only a specific entity in redis
 await CacheManager.redis.reset('key')
 
 ```
-## API
+## API - cache manager
 
 - `initialize()`
-Initialize the cache manager
-
+initialize the cache manager
 - `save('key', 'subkey', 'value')`
-Save data in memory and redis
+save data in memory and redis
 - `fetched('key', 'subkey')`
-Fetched data,in the fastest strategy
+fetched data,in the fastest strategy
 - `reset()`
-Delete all entities in cache
+delete all entities in cache
 - `resetEntity('key')`
-Delete a especific entity in cache
+delete a especific entity in cache
+
+
+## API - memory manager
+
+- `initialize()`
+initialize the memory manager
+- `set('key', 'subkey', 'value')`
+save data in cache
+- `get('key', 'subkey')`
+fetched data
+- `reset()`
+delete all entities in cache
+- `reset('key')`
+delete a especific entity in cache
+- `prune()`
+pruning old entries
+
+
+
+
+
 
 
 

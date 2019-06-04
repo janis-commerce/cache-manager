@@ -25,7 +25,6 @@ class RedisManager {
      */
 	static cacheConfig() {
 
-
 		let config;
 
 		try {
@@ -101,13 +100,13 @@ class RedisManager {
 
 		const defaults = {
 			host,
-			port
-			/* retry_strategy: data => {
+			port,
+			retry_strategy: data => {
 				if(!this.inited)
 					return 5000; // If it never inited retry every 5 seconds.
 
 				return Math.min(data.total_retry_time || 1000, 30 * 1000); // Max retry of 30 seconds
-			} */
+			}
 		};
 
 		const client = redis.createClient({ ...defaults, ...options });
@@ -117,7 +116,7 @@ class RedisManager {
 			this.inited = true;
 		});
 
-		client.on('error', err => logger.error(err.message));
+		client.on('error', err => console.log(err.message));
 
 		this.clients.push(client); // for close latter
 
@@ -190,13 +189,16 @@ class RedisManager {
 		await this.client.flushall('ASYNC');
 	}
 
-	
+
 	/**
      * Close connection
      */
 	static close() {
 		return Promise.all(this.clients.map(client => {
-			const promise = new Promise(resolve => client.on('end', resolve));
+			const promise = new Promise(resolve => client.on('end', () => {
+				logger.info('Redis - server connection has closed');
+				resolve();
+			}));
 
 			client.quit();
 

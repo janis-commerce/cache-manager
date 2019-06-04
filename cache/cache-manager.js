@@ -110,8 +110,6 @@ class CacheManager {
    */
 	static async cleanAll(method) {
 		STRATEGIES.forEach(async strategy => {
-			console.log('entro a borrar');
-
 			await this[strategy][method]();
 		});
 	}
