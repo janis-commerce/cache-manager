@@ -105,7 +105,10 @@ class MemoryManager {
 	 * @param {string} value Results
 	 * @returns {boolean} true if success.
 	 */
-	static set(key, subkey = '', value) {
+	static set(key, subkey, value) {
+
+		if(!key || !subkey || !value)
+			throw new Error('SET - Missing parametres.');
 		const newParams = this._prepareParams(subkey);
 		return this.getInstance(key).set(this._getKey(key, newParams), value);
 	}
@@ -116,7 +119,9 @@ class MemoryManager {
 	 * @param {string} subkey Parametres
 	 * @returns {*} Results, 'undefined' if not found
 	 */
-	static async get(key, subkey = '') {
+	static async get(key, subkey) {
+		if(!key || !subkey)
+			throw new Error('GET - Missing Parametres.');
 		return this.getInstance(key).get(this._getKey(key, this._prepareParams(subkey)));
 	}
 

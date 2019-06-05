@@ -44,6 +44,21 @@ describe('Memory Manager Tests', () => {
 
 	});
 
+	it('set wrong', () => {
+
+		assert.throws(() => MemoryManager.set('only key'));
+
+	});
+
+	it('get wrong', () => {
+
+		MemoryManager.get('key').catch(err => {
+			assert.equal(err.message, 'GET - Missing Parametres.');
+		});
+		
+		// assert.throws(() => MemoryManager.get());
+	});
+
 	it('reset cache', async() => {
 
 		MemoryManager.set('FIZZ', 'MOD', 'SOFT');

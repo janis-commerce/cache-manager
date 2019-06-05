@@ -19,24 +19,24 @@ function redismocks() {
 	client.set('K-3', 'valor k 3');
 
 	// client.del('K-2');
-	client.flushall()
+	client.flushall();
 
 	client.get('K-1', (err, data) => {
-		if(err) 
+		if(err)
 			throw Error('ERRORRRR');
 
 		console.log(data);
 	});
 
 	client.get('K-2', (err, data) => {
-		if(err) 
+		if(err)
 			throw Error('ERRORRRR');
 
 		console.log(data);
 	});
 
 	client.get('K-3', (err, data) => {
-		if(err) 
+		if(err)
 			throw Error('ERRORRRR');
 
 		console.log(data);
@@ -57,13 +57,19 @@ async function memoManager() {
 
 	await MemoryManager.reset();
 
+	try {
+		MemoryManager.set('k', 'k');
+	} catch(error) {
+		console.log(error.message);
+	}
+
 	// borradodos
-	MemoryManager.get('KEY1', 'SUBKEY').then(data => console.log(data));
+	/* MemoryManager.get('KEY1', 'SUBKEY').then(data => console.log(data));
 	MemoryManager.get('KEY2', 'SUBKEY').then(data => console.log(data));
-	MemoryManager.get('KEY3', 'SUBKEY').then(data => console.log(data));
+	MemoryManager.get('KEY3', 'SUBKEY').then(data => console.log(data)); */
 }
 
-// memoManager()
+memoManager();
 
 const cache = async() => {
 	// inicializar
@@ -101,4 +107,4 @@ async function rediss() {
 	}, 5000);
 }
 
-rediss();
+// rediss();
