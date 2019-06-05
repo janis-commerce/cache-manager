@@ -26,33 +26,12 @@ CacheManager.initialize('Client');
 
 // save in all cache strategies
 CacheManager.save('key', 'subkey', { message: 'hello friend' })
-
-//or
-
-// save data only in memory cache
-CacheManager.memory.set('mem', 'subkey', { cache: 'memory' })
-
-// save data only in redis cache
-CacheManager.redis.set('red', 'subkey', { cache: 'redis' })
-
-
 ```
 ### fetch data
 ```js
 // fetched data in the fastest first strategy and then in the rest
 CacheManager.fetch('key', 'subkey').then(data => {
     console.log(data) // '{ message: 'hello friend' }
-})
-
-//or
-// fetched data from memory
-CacheManager.memory.get('mem', 'subkey').then( data => {
-    console.log(data) // { cache: 'memory' }
-})
-
-// fetched data from redis
-CacheManager.redis.get('red', 'subkey').then( data => {
-    console.log(data) // { cache: 'redis' }
 })
 ```
 
@@ -63,54 +42,127 @@ await CacheManager.reset();
 
 // reset only a specific entity in all strategies
 await CacheManager.resetEntity('key');
+```
 
-//cache memory
-// reset all in cache memory
+## API 
+- `initialize('client')`
+Initialize the cache manager
+- `save('key', 'subkey', 'value')`
+Save data in memory and redis
+- `fetched('key', 'subkey')`
+Fetched data in the fastest strategy. Returns a promise. In case of not found a value returns null
+- `reset()`
+Delete all entities in cache
+- `resetEntity('key')`
+Delete a especific entity in cache
+
+You can also use redis or memory independently as follows
+```js
+// memory
+CacheManager.memory.[method]
+
+// redis
+CacheManager.redis.[method]
+```
+
+#### API memory
+
+- `initialize('client)`
+Initialize the memory manager if you did not previously with the cache manager initializer. 
+
+- `set('key', 'subkey', 'value')`
+Save data
+
+- `get('key', 'subkey')`
+Fetched data. Returns a promise. In case of not found a value returns undefined
+
+- `reset()`
+Delete all entities
+
+- `reset('key')`
+Delete a especific entity
+
+- `prune()`
+Pruning old entries
+
+
+#### Usage example
+```js
+CacheManager.memory.initialize('client memory')
+
+// set data
+CacheManager.memory.set('mem', 'subkey', { cache: 'memory' })
+CacheManager.memory.set('keymem', 'submem', 'memory value')
+
+// get data
+const mem = await CacheManager.memory.get('mem', 'subkey')
+console.log(mem) // { cache: 'memory' }
+
+// delete key mem 
+await CacheManager.memory.reset('mem')
+
+// get data from the deleted key
+const memDelete = await CacheManager.memory.get('mem', 'subkey')
+console.log(memDelete) // undefined
+
+// delete all keys
 await CacheManager.memory.reset()
 
-//reset only a specific entity in memory
-await CacheManager.memory.reset('key')
-
-// reset all in redis
-await CacheManager.redis.reset()
-
-//reset only a specific entity in redis
-await CacheManager.redis.reset('key')
+// get data from the deleted key
+const keymem = await CacheManager.memory.get('keymem', 'submem')
+console.log(keymem) // undefined
 
 ```
-## API - cache manager
-
-- `initialize()`
-initialize the cache manager
-- `save('key', 'subkey', 'value')`
-save data in memory and redis
-- `fetched('key', 'subkey')`
-fetched data,in the fastest strategy
-- `reset()`
-delete all entities in cache
-- `resetEntity('key')`
-delete a especific entity in cache
 
 
-## API - memory manager
+#### API redis
+- `initialize('client)`
+Initialize the redis manager if you did not previously with the cache manager initializer.
 
-- `initialize()`
-initialize the memory manager
 - `set('key', 'subkey', 'value')`
-save data in cache
+Save data
+
 - `get('key', 'subkey')`
-fetched data
+Fetched data in the fastest strategy. Returns a promise. In case of not found a value returns null
+
 - `reset()`
-delete all entities in cache
+Delete all entities in cache
+
 - `reset('key')`
-delete a especific entity in cache
-- `prune()`
-pruning old entries
+Delete a especific entity in cache
+
+- `close()`
+Close connection
+
+#### Usage example
+```js
+CacheManager.redis.initialize('client redis');
+
+// save data
+CacheManager.redis.set('red', 'subkey', { cache: 'redis' });
+CacheManager.redis.set('red-2', 'sub-2', 'redis-2');
+
+// get data
+CacheManager.redis.get('red', 'subkey').then(data => {
+	console.log(data); // { cache: 'redis' }
+});
+
+// delete key red-2
+await CacheManager.redis.reset('red-2');
+
+// get data from the deleted key
+const del = await CacheManager.redis.get('red-2', 'sub-2');
+console.log(del); // null
+
+// delete all keys
+await CacheManager.redis.reset();
+
+// get data from the deleted key
+const red = await CacheManager.redis.get('red', 'subkey');
+console.log(red); // null
+
+// close connection
+CacheManager.redis.close();
 
 
-
-
-
-
-
-
+```

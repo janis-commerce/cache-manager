@@ -55,7 +55,7 @@ class RedisManager {
 		return this._keyPrefix;
 	}
 
-	static _getKey(key) {
+	static getKey(key) {
 		return `${this.keyPrefix}${key}`;
 	}
 
@@ -94,21 +94,14 @@ class RedisManager {
      *    @return {object} redis client
      */
 	static createClient(options = {}) {
-		const host = this.config.host || 'localhost';
-		const port = this.config.port || 6739;
+		const { host, port } = RedisManager.configServer();
 
 		const defaults = {
 			host,
 			port
-			/* retry_strategy: data => {
-				if(!this.inited)
-					return 1000; // If it never inited retry every 5 seconds.
-
-				return Math.min(data.total_retry_time || 1000, 30 * 1000); // Max retry of 30 seconds
-			} */
 		};
 
-		const client = RedisManager.clientRedis(defaults, options);
+		const client = this.clientRedis(defaults, options);
 
 		client.on('connect', () => {
 			logger.info(`Redis - connected to ${host}:${port} - Client: ${this.keyPrefix}`);
@@ -118,7 +111,7 @@ class RedisManager {
 		client.on('error', err => logger.error(err.message));
 
 		client.on('reconnecting', () => {
-			logger.warn('Redis - reconnecting');
+			logger.warn(`Redis - reconnecting - Client: ${this.keyPrefix}`);
 		});
 
 		this.clients.push(client); // for close latter
@@ -126,6 +119,16 @@ class RedisManager {
 		return client;
 	}
 
+	static configServer() {
+		const host = this.config.host || 'localhost';
+		const port = this.config.port || 6739;
+		return { host, port };
+	}
+
+	/**
+	 * @param {Object} defaults configs
+	 * @param {Object} options properties
+	 */
 	static clientRedis(defaults, options) {
 		return redis.createClient({ ...defaults, ...options });
 	}
@@ -143,8 +146,8 @@ class RedisManager {
 
 	/**
      * Save the data.
-     *@param {*} key Entity name
-     *@param {*} subkey Parametres, will be encryptic
+     *@param {String} key Entity name
+     *@param {String} subkey Parametres, will be encryptic
      *@param {*} value Results
      */
 	static async set(key, subkey, value) {
@@ -153,7 +156,7 @@ class RedisManager {
 			throw new Error('SET - Missing parametres.');
 
 		const newParams = this._prepareParams(subkey); // Encrypt params
-		await this.client.hset(this._getKey(key), newParams, JSON.stringify(value));
+		await this.client.hset(this.getKey(key), newParams, JSON.stringify(value));
 	}
 
 	/**
@@ -164,9 +167,9 @@ class RedisManager {
 	static async get(key, subkey) {
 		// If no data to search throws Error
 		if(!key || !subkey)
-			throw new Error('GET - Missing Parametres.');
+			throw new Error('GET - Missing parametres.');
 
-		const value = await this.client.hget(this._getKey(key), this._prepareParams(subkey));
+		const value = await this.client.hget(this.getKey(key), this._prepareParams(subkey));
 		return value ? JSON.parse(value) : null;
 	}
 
@@ -186,7 +189,7 @@ class RedisManager {
      * @param {String} key Entity
      */
 	static async resetEntity(key) {
-		await this.client.del(this._getKey(key));
+		await this.client.del(this.getKey(key));
 	}
 
 	/**

@@ -16,106 +16,68 @@ describe('Memory Manager Tests', () => {
 		MemoryManager.reset();
 	});
 
-	it('set and get', async() => {
-
+	it('should set and get data', async() => {		
 		MemoryManager.set('KEY', 'SUBKEY', { prop: 'tests' });
-
 		const res = await MemoryManager.get('KEY', 'SUBKEY');
-
 		assert.deepEqual(res, { prop: 'tests' });
-
 	});
 
-	it('getting a value not set', async() => {
-
+	it('should getting a value not set', async() => {
 		const res = await MemoryManager.get('CLAVE', 'SK');
-
 		assert.equal(res, undefined);
-
 	});
 
-	it('delete a entity', async() => {
-
+	it('should delete a key', async() => {
 		MemoryManager.set('K1', 'SK1', 'VALOR-1');
-
 		await MemoryManager.reset('K1');
-
 		assert.deepEqual(MemoryManager.checkInstance('K1'), false);
-
 	});
 
-	it('set wrong', () => {
-
+	it('should detect the error when setting data wrong', () => {
 		assert.throws(() => MemoryManager.set('only key'));
-
 	});
 
-	it('get wrong', () => {
-
-		MemoryManager.get('key').catch(err => {
-			assert.equal(err.message, 'GET - Missing Parametres.');
-		});
-		
-		// assert.throws(() => MemoryManager.get());
+	it('should catch the error when getting data wrong', async() => {
+		await assert.rejects(() => MemoryManager.get('key'),
+			{
+				constructor: Error,
+				message: 'GET - Missing parametres.'
+			});
 	});
 
-	it('reset cache', async() => {
-
+	it('should reset cache', async() => {
 		MemoryManager.set('FIZZ', 'MOD', 'SOFT');
 		MemoryManager.set('K-FIZZ', 'SK-MOD', 'K-SOFT');
-
 		await MemoryManager.reset();
-
 		assert.deepEqual(MemoryManager.checkInstance('FIZZ'), false);
 		assert.deepEqual(MemoryManager.checkInstance('K-FIZZ'), false);
-
 	});
 
-	it('prune cache memory', async() => {
-
+	it('should prune cache memory', async() => {
 		const timer = sinon.useFakeTimers();
-
 		MemoryManager.set('prune11', 'sub-prune11', 'value prune11');
-
 		await MemoryManager.prune();
 
+		// simulating time to prune old entries
 		timer.tick(3610000);
-
 		const res = await MemoryManager.get('prune11', 'sub-prune11');
-
 		assert.equal(res, undefined);
-
 	});
 
-	it('get key instance', () => {
-
+	it('should get key instance', () => {
 		MemoryManager.set('cl1', 'sb2', 'valor');
-
 		assert.equal(MemoryManager.getInstanceKey('cl1'), 'Testcl1');
 	});
 
-	/* it('reset with no instances', () => {
-		MemoryManager.instances = {};
-		assert.equal(MemoryManager.resetAll(), null);
-	});
-
-	it('prune with no instances', () => {
-		MemoryManager.instances = {};
-		assert.equal(MemoryManager.pruneAll(), null);
-	}); */
-
-	it('delete key no set', async() => {
-
+	it('should delete key no set', async() => {
 		assert.equal(await MemoryManager.reset('some key'), undefined);
 	});
 
-	it('get key with subkey', () => {
-
-		assert.equal(MemoryManager._getKey('key', 'sub'), 'key-sub');
+	it('should get key with subkey', () => {
+		assert.equal(MemoryManager.getKey('key', 'sub'), 'key-sub');
 	});
 
-	it('key without subkey', () => {
-
-		assert.equal(MemoryManager._getKey('key'), 'key');
+	it('should get key without subkey', () => {
+		assert.equal(MemoryManager.getKey('key'), 'key');
 	});
 });

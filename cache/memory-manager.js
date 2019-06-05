@@ -35,7 +35,7 @@ class MemoryManager {
 		logger.info(`Cache memory - Client: ${this.keyPrefix} '}`);
 	}
 
-	/* 
+	/*
 	 */
 
 	/**
@@ -82,7 +82,7 @@ class MemoryManager {
 	 * @param {string} subkey Parametres
 	 * @returns {string}
 	 */
-	static _getKey(key, subkey = '') {
+	static getKey(key, subkey = '') {
 		return subkey !== '' ? `${key}-${subkey}` : key;
 	}
 
@@ -110,7 +110,7 @@ class MemoryManager {
 		if(!key || !subkey || !value)
 			throw new Error('SET - Missing parametres.');
 		const newParams = this._prepareParams(subkey);
-		return this.getInstance(key).set(this._getKey(key, newParams), value);
+		return this.getInstance(key).set(this.getKey(key, newParams), value);
 	}
 
 	/**
@@ -121,8 +121,8 @@ class MemoryManager {
 	 */
 	static async get(key, subkey) {
 		if(!key || !subkey)
-			throw new Error('GET - Missing Parametres.');
-		return this.getInstance(key).get(this._getKey(key, this._prepareParams(subkey)));
+			throw new Error('GET - Missing parametres.');
+		return this.getInstance(key).get(this.getKey(key, this._prepareParams(subkey)));
 	}
 
 	/**
@@ -134,9 +134,10 @@ class MemoryManager {
 		if(key) {
 			key = this.getInstanceKey(key);
 			if(this.checkInstance(key))
-				return this.resetEntity(key);
-			 return;
-		} return this.resetAll();
+				return this._resetEntity(key);
+			return;
+		}
+		return this.resetAll();
 	}
 
 	/**
@@ -149,7 +150,7 @@ class MemoryManager {
 			return null;
 
 		return Promise.all(
-			Object.keys(this.instances).map(key => this.resetEntity(key))
+			Object.keys(this.instances).map(key => this._resetEntity(key))
 		);
 	}
 
@@ -158,9 +159,9 @@ class MemoryManager {
 	 * @param {string} key Instance
 	 * @returns {Promise}
 	 */
-	static async resetEntity(key) {
+	static async _resetEntity(key) {
 
-			this.instances[key].reset();
+		this.instances[key].reset();
 	}
 
 	/**
@@ -169,28 +170,27 @@ class MemoryManager {
 	 * @returns {Promise}
 	 */
 	static async prune() {
-		return this.pruneAll();
+		return this._pruneAll();
 	}
 
 	/**
 	 * Prune All Instances
 	 * @returns {Promise}
 	 */
-	static pruneAll() {
+	static _pruneAll() {
 
 		return Promise.all(
-			Object.keys(this.instances).map(key => this.pruneEntity(key))
+			Object.keys(this.instances).map(key => this._pruneEntity(key))
 		);
 	}
 
 	/**
 	 * Prune a single Instance
 	 * @param {string} key Entity
-	 * @returns {Promise}
 	 */
-	static pruneEntity(key) {
+	static _pruneEntity(key) {
 
-			this.instances[key].prune();
+		this.instances[key].prune();
 
 	}
 

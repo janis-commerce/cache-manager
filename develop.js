@@ -57,11 +57,11 @@ async function memoManager() {
 
 	await MemoryManager.reset();
 
-	try {
+	/* 	try {
 		MemoryManager.set('k', 'k');
 	} catch(error) {
 		console.log(error.message);
-	}
+	} */
 
 	// borradodos
 	/* MemoryManager.get('KEY1', 'SUBKEY').then(data => console.log(data));
@@ -69,7 +69,7 @@ async function memoManager() {
 	MemoryManager.get('KEY3', 'SUBKEY').then(data => console.log(data)); */
 }
 
-memoManager();
+// memoManager();
 
 const cache = async() => {
 	// inicializar
@@ -91,10 +91,10 @@ const cache = async() => {
 async function rediss() {
 
 	RedisManager.initialize('fede-Redis');
-	// RedisManager.set('k2', 'sk2', 'hello friend');
-	// RedisManager.set('k3', 'sk3', 'hello friend');
+	RedisManager.set('k2', 'sk2', 'hello friend');
+	RedisManager.set('k3', 'sk3', 'hello friend');
 
-	// await RedisManager.reset();
+	await RedisManager.reset('k3');
 
 	const res = await RedisManager.get('k3', 'sk3');
 	console.log(res);
@@ -108,3 +108,49 @@ async function rediss() {
 }
 
 // rediss();
+
+async function memoryReadme() {
+	CacheManager.memory.initialize('client memory');
+
+	CacheManager.memory.set('mem', 'subkey', { cache: 'memory' });
+	CacheManager.memory.set('keymem', 'submem', 'memory value');
+
+	const mem = await CacheManager.memory.get('mem', 'subkey');
+	console.log(mem); // { cache: 'memory' }
+
+	await CacheManager.memory.reset('mem');
+
+	const memDelete = await CacheManager.memory.get('mem', 'subkey');
+	console.log(memDelete); // undefined
+
+	await CacheManager.memory.reset();
+
+	const keymem = await CacheManager.memory.get('keymem', 'submem');
+	console.log(keymem); // undefined
+}
+
+// memoryReadme();
+
+async function redisReadme() {
+	CacheManager.redis.initialize('client redis');
+
+	CacheManager.redis.set('red', 'subkey', { cache: 'redis' });
+	CacheManager.redis.set('red-2', 'sub-2', 'redis-2');
+
+	CacheManager.redis.get('red', 'subkey').then(data => {
+		console.log(data); // { cache: 'redis' }
+	});
+
+	await CacheManager.redis.reset('red-2');
+
+	const del = await CacheManager.redis.get('red-2', 'sub-2');
+	console.log(del); // null
+
+	await CacheManager.redis.reset();
+
+	const red = await CacheManager.redis.get('red', 'subkey');
+	console.log(red); // null
+
+	CacheManager.redis.close();
+}
+redisReadme();
