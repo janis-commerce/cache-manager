@@ -11,10 +11,6 @@ const { RedisManager, CacheManagerError } = require('../cache');
 
 describe('Redis Manager', function() {
 
-	before(() => {
-		RedisManager.client.setMaxListeners(15);
-	});
-
 	context('with mocks', () => {
 
 		beforeEach(function() {
@@ -31,6 +27,8 @@ describe('Redis Manager', function() {
 				.returns(redisMock.createClient());
 
 			RedisManager.initialize('Test');
+			RedisManager.client.setMaxListeners(15);
+
 		});
 
 		afterEach(function() {
@@ -38,6 +36,13 @@ describe('Redis Manager', function() {
 			sandbox.restore();
 		});
 
+		it('should return the client entered', () => {
+			assert.equal(RedisManager.validClient('client'), 'client');
+		});
+
+		it('should return the default client', () => {
+			assert.equal(RedisManager.validClient(), 'DEFAULT_CLIENT');
+		});
 
 		it('should get and set data', async() => {
 			RedisManager.set('KEY', 'SUBKEY', { value: 'VALOR' });
@@ -105,6 +110,7 @@ describe('Redis Manager', function() {
 		});
 
 		it('should the event be called once ', () => {
+			// RedisManager.client.setMaxListeners(15);
 			const spy = sandbox.spy();
 			RedisManager.client.on('reconnecting', spy);
 			RedisManager.client.emit('reconnecting');

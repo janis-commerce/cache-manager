@@ -82,12 +82,18 @@ class RedisManager {
 		if(this.client)
 			return;
 
-		this.keyPrefix = client;
+		this.keyPrefix = this.validClient(client);
 		this.clients = [];
 		this.inited = null;
 
 		this.client = this.createClient();
 		this.promisify(this.client);
+	}
+
+	static validClient(client) {
+		if(typeof client === 'string')
+			return client;
+		return 'DEFAULT_CLIENT';
 	}
 
 	/**

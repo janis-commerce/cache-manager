@@ -13,7 +13,7 @@ class CacheManager {
 
 	static get client() {
 		return this._client;
-	}
+	}	
 
 	/**
    * Initialize All the Strategies.
@@ -23,13 +23,19 @@ class CacheManager {
 		if(this.client)
 			return;
 
-		this.client = client;
+		this.client = this.validClient(client);
 
 		MemoryManager.initialize(this.client);
 		RedisManager.initialize(this.client);
 		// Clean before start using.
 		MemoryManager.reset();
 		RedisManager.reset();
+	}
+
+	static validClient(client) {
+		if(typeof client === 'string')
+			return client;
+		return 'DEFAULT_CLIENT';
 	}
 
 	/**

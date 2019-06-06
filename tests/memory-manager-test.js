@@ -16,6 +16,14 @@ describe('Memory Manager Tests', () => {
 		MemoryManager.reset();
 	});
 
+	it('should return the client entered', () => {
+		assert.equal(MemoryManager.validClient('Test'), 'Test');
+	});
+
+	it('should return the default client ', () => {
+		assert.equal(MemoryManager.validClient(), 'DEFAULT_CLIENT');
+	});
+
 	it('should set and get data', async() => {		
 		MemoryManager.set('KEY', 'SUBKEY', { prop: 'tests' });
 		const res = await MemoryManager.get('KEY', 'SUBKEY');

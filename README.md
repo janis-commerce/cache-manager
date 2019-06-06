@@ -58,15 +58,15 @@ await CacheManager.resetEntity('key');
 ```
 
 ## API 
-- `initialize('client')`
-Initialize the cache manager
-- `save('key', 'subkey', 'value')`
+- `initialize('string client')`
+Initialize the cache manager. Receives as a parameter a string to be able to use it as a prefix
+- `save('string key', 'string subkey', 'value')`
 Save data in memory and redis
-- `fetched('key', 'subkey')`
+- `fetched('string key', 'string subkey')`
 Fetched data in the fastest strategy. Returns a promise. In case of not found a value returns null
 - `reset()`
 Delete all entities in cache
-- `resetEntity('key')`
+- `resetEntity('string key')`
 Delete a especific entity in cache
 
 You can also use redis or memory independently as follows
@@ -80,19 +80,19 @@ CacheManager.redis.[method]
 
 #### API memory
 
-- `initialize('client)`
-Initialize the memory manager if you did not previously with the cache manager initializer. 
+- `initialize('string client')`
+Initialize the memory manager if you did not previously with the cache manager initializer. Receives as a parameter a string to be able to use it as a prefix
 
-- `set('key', 'subkey', 'value')`
+- `set('string key', 'string subkey', 'value')`
 Save data
 
-- `get('key', 'subkey')`
+- `get('string key', 'string subkey')`
 Fetched data. Returns a promise. In case of not found a value returns undefined
 
 - `reset()`
 Delete all entities
 
-- `reset('key')`
+- `reset('string key')`
 Delete a especific entity
 
 - `prune()`
@@ -129,19 +129,19 @@ console.log(keymem) // undefined
 
 
 #### API redis
-- `initialize('client)`
-Initialize the redis manager if you did not previously with the cache manager initializer.
+- `initialize('string client)`
+Initialize the redis manager if you did not previously with the cache manager initializer. Receives as a parameter a string to be able to use it as a prefix
 
-- `set('key', 'subkey', 'value')`
+- `set('string key', 'string subkey', 'value')`
 Save data
 
-- `get('key', 'subkey')`
+- `get('string key', 'string subkey')`
 Fetched data in the fastest strategy. Returns a promise. In case of not found a value returns null
 
 - `reset()`
 Delete all entities in cache
 
-- `reset('key')`
+- `reset('string key')`
 Delete a especific entity in cache
 
 - `close()`
@@ -179,3 +179,4 @@ CacheManager.redis.close();
 
 
 ```
+

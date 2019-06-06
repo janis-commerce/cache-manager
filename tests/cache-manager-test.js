@@ -21,12 +21,23 @@ describe('Cache Manager Test', () => {
 			.returns(redisMock.createClient());
 
 		CacheManager.initialize('Test');
+		CacheManager.redis.client.setMaxListeners(0);
+
 	});
 
 	after(() => {
 		CacheManager.reset();
 		CacheManager.redis.close();
 		sandbox.restore();
+	});
+
+	it('should return the client entered', () => {
+
+		assert.equal(CacheManager.validClient('client'), 'client');
+	});
+
+	it(' should return the default client', () => {
+		assert.equal(CacheManager.validClient(1), 'DEFAULT_CLIENT');
 	});
 
 

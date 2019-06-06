@@ -32,8 +32,14 @@ class MemoryManager {
 			return;
 
 		this.instances = {};
-		this.keyPrefix = client;
-		logger.info(`Cache memory - Client: ${this.keyPrefix} '}`);
+		this.keyPrefix = this.validClient(client);
+		logger.info(`Cache memory - Client: ${this.keyPrefix}`);
+	}
+
+	static validClient(client) {
+		if(typeof client === 'string')
+			return client;
+		return 'DEFAULT_CLIENT';
 	}
 
 	/**
