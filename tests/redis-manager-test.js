@@ -7,9 +7,13 @@ const sandbox = require('sinon').createSandbox();
 const redisMock = require('redis-mock');
 const mockRequire = require('mock-require');
 const redis = require('redis');
-const { RedisManager } = require('../cache');
+const { RedisManager, CacheManagerError } = require('../cache');
 
 describe('Redis Manager', function() {
+
+	before(() => {
+		RedisManager.client.setMaxListeners(15);
+	});
 
 	context('with mocks', () => {
 
@@ -64,16 +68,16 @@ describe('Redis Manager', function() {
 		it('should detect the error when setting data wrong', async() => {
 			await assert.rejects(() => RedisManager.get(),
 				{
-					constructor: Error,
-					message: 'GET - Missing parametres.'
+					name: 'CacheManagerError',
+					code: CacheManagerError.codes.MISSING_PARAMETRES
 				});
 		});
 
 		it('should catch the error when getting data wrong', async() => {
 			await assert.rejects(() => RedisManager.set(),
 				{
-					constructor: Error,
-					message: 'SET - Missing parametres.'
+					name: 'CacheManagerError',
+					code: CacheManagerError.codes.MISSING_PARAMETRES
 				});
 		});
 
@@ -100,8 +104,7 @@ describe('Redis Manager', function() {
 			assert.deepEqual(RedisManager.configServer(), { host: 'localhost', port: 6739 });
 		});
 
-		it('event', () => {
-			RedisManager.client.setMaxListeners(15);
+		it('should the event be called once ', () => {
 			const spy = sandbox.spy();
 			RedisManager.client.on('reconnecting', spy);
 			RedisManager.client.emit('reconnecting');

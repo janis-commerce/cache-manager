@@ -3,7 +3,7 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
-const { MemoryManager } = require('../cache');
+const { MemoryManager, CacheManagerError } = require('../cache');
 
 
 describe('Memory Manager Tests', () => {
@@ -34,14 +34,17 @@ describe('Memory Manager Tests', () => {
 	});
 
 	it('should detect the error when setting data wrong', () => {
-		assert.throws(() => MemoryManager.set('only key'));
+		assert.throws(() => MemoryManager.set('only key'), {
+			name: 'CacheManagerError',
+			code: CacheManagerError.codes.MISSING_PARAMETRES
+		});
 	});
 
 	it('should catch the error when getting data wrong', async() => {
 		await assert.rejects(() => MemoryManager.get('key'),
 			{
-				constructor: Error,
-				message: 'GET - Missing parametres.'
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.MISSING_PARAMETRES
 			});
 	});
 
