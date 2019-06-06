@@ -9,8 +9,6 @@ const CacheManager = require('../index');
 
 describe('Cache Manager Test', () => {
 
-	let redisClient;
-
 	before(() => {
 		const configs = {
 			host: 'localhost5',
@@ -18,7 +16,7 @@ describe('Cache Manager Test', () => {
 		};
 
 		mockRequire(CacheManager.redis.configPath, configs);
-		redisClient = sandbox
+		sandbox
 			.stub(redis, 'createClient')
 			.returns(redisMock.createClient());
 
@@ -28,7 +26,7 @@ describe('Cache Manager Test', () => {
 	after(() => {
 		CacheManager.reset();
 		CacheManager.redis.close();
-		redisClient.restore();
+		sandbox.restore();
 	});
 
 

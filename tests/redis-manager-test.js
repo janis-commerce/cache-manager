@@ -12,9 +12,8 @@ const { RedisManager } = require('../cache');
 describe('Redis Manager', function() {
 
 	context('with mocks', () => {
-		let redisClient;
 
-		before(function() {
+		beforeEach(function() {
 
 			const configs = {
 				hosty: 'localhost5',
@@ -23,17 +22,18 @@ describe('Redis Manager', function() {
 
 			mockRequire(RedisManager.configPath, configs);
 
-			redisClient = sandbox
+			sandbox
 				.stub(redis, 'createClient')
 				.returns(redisMock.createClient());
 
 			RedisManager.initialize('Test');
 		});
 
-		after(function() {
+		afterEach(function() {
 			RedisManager.close();
-			redisClient.restore();
+			sandbox.restore();
 		});
+
 
 		it('should get and set data', async() => {
 			RedisManager.set('KEY', 'SUBKEY', { value: 'VALOR' });
@@ -78,46 +78,34 @@ describe('Redis Manager', function() {
 		});
 
 		it('should throw an error by incorrect configuration path', function() {
-			const stub = sandbox.stub(RedisManager, 'configPath').get(() => {
+			sandbox.stub(RedisManager, 'configPath').get(() => {
 				return 'bad-path-config.json';
 			});
 			assert.throws(() => RedisManager.cacheConfig(), Error);
-			stub.restore();
 		});
 
 		it('should take the value of port and host', () => {
-			const stub = sandbox.stub(RedisManager, 'config').get(() => {
+			sandbox.stub(RedisManager, 'config').get(() => {
 				return { host: 'fakehost', port: 1234 };
 			});
 
 			assert.deepEqual(RedisManager.configServer(), { host: 'fakehost', port: 1234 });
-			stub.restore();
-
 		});
 
 		it('should take the values ​​by default', () => {
-			const stub = sandbox.stub(RedisManager, 'config').get(() => {
+			sandbox.stub(RedisManager, 'config').get(() => {
 				return { nohost: 'fakehost', noport: 1234 };
 			});
 
 			assert.deepEqual(RedisManager.configServer(), { host: 'localhost', port: 6739 });
-			stub.restore();
-
 		});
-	});
 
-	context('with redis', () => {
-
-		/* it('spy in create client', () => {
-
-			const spy = sandbox.spy(RedisManager, 'promisify');
-
-			RedisManager.initialize('client redis');
-
-			assert(spy.calledOnce);
-
-			spy.restore();
-		}) */
-
+		it('event', () => {
+			RedisManager.client.setMaxListeners(15);
+			const spy = sandbox.spy();
+			RedisManager.client.on('reconnecting', spy);
+			RedisManager.client.emit('reconnecting');
+			sandbox.assert.calledWith(spy);
+		});
 	});
 });
