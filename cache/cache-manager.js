@@ -1,7 +1,6 @@
 'use strict';
 
 const logger = require('@janiscommerce/logger');
-
 const RedisManager = require('./redis-manager');
 const MemoryManager = require('./memory-manager');
 
@@ -31,7 +30,6 @@ class CacheManager {
 		// Clean before start using.
 		MemoryManager.reset();
 		RedisManager.reset();
-
 	}
 
 	/**
@@ -66,8 +64,8 @@ class CacheManager {
    * @param {*} results Values
    */
 	static async fetch(entity, params, results) {
-		// Search in Memory (LRU) first
 
+		// Search in Memory (LRU) first
 		let fetched = await this.memory.get(entity, params, results);
 
 		if(typeof fetched !== 'undefined') {
@@ -76,7 +74,6 @@ class CacheManager {
 		}
 
 		// If in the memory not Found, search in Redis
-
 		fetched = await this.redis.get(entity, params, results);
 
 		if(fetched !== null) {
@@ -89,7 +86,6 @@ class CacheManager {
 
 		return null;
 	}
-
 
 	/**
    * Reset cache memorys in all strategies
@@ -104,6 +100,14 @@ class CacheManager {
 	}
 
 	/**
+	 * Reset entity in all strategies
+	 * @param {String} entity Entity
+	 */
+	static async resetEntity(entity) {
+		await this.cleanEntity(entity, 'reset');
+	}
+
+	/**
    * Clean the memory in every strategy avaible.
    * @param {string} entity Entity
    * @param {string} method Method to clean ('reset' or 'prune')
@@ -112,14 +116,6 @@ class CacheManager {
 		STRATEGIES.forEach(async strategy => {
 			await this[strategy][method]();
 		});
-	}
-
-	/**
-	 * Reset entity in all strategies
-	 * @param {String} entity Entity
-	 */
-	static async resetEntity(entity) {
-		await this.cleanEntity(entity, 'reset');
 	}
 
 	/**
@@ -132,7 +128,6 @@ class CacheManager {
 			await this[strategy][method](entity);
 		});
 	}
-
 }
 
 module.exports = CacheManager;

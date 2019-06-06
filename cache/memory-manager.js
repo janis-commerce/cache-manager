@@ -3,6 +3,7 @@
 const LRU = require('lru-cache');
 const md5 = require('md5');
 const logger = require('@janiscommerce/logger');
+const CacheManagerError = require('./cache-manager-error');
 
 /**
  *	MemoryManager class - Static
@@ -34,9 +35,6 @@ class MemoryManager {
 		this.keyPrefix = client;
 		logger.info(`Cache memory - Client: ${this.keyPrefix} '}`);
 	}
-
-	/*
-	 */
 
 	/**
 	 * Returns the correct name of the Key
@@ -108,7 +106,7 @@ class MemoryManager {
 	static set(key, subkey, value) {
 
 		if(!key || !subkey || !value)
-			throw new Error('SET - Missing parametres.');
+			throw new CacheManagerError('SET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 		const newParams = this._prepareParams(subkey);
 		return this.getInstance(key).set(this.getKey(key, newParams), value);
 	}
@@ -121,7 +119,7 @@ class MemoryManager {
 	 */
 	static async get(key, subkey) {
 		if(!key || !subkey)
-			throw new Error('GET - Missing parametres.');
+			throw new CacheManagerError('GET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 		return this.getInstance(key).get(this.getKey(key, this._prepareParams(subkey)));
 	}
 
@@ -160,7 +158,6 @@ class MemoryManager {
 	 * @returns {Promise}
 	 */
 	static async _resetEntity(key) {
-
 		this.instances[key].reset();
 	}
 
@@ -189,12 +186,8 @@ class MemoryManager {
 	 * @param {string} key Entity
 	 */
 	static _pruneEntity(key) {
-
 		this.instances[key].prune();
-
 	}
-
-
 }
 
 module.exports = MemoryManager;

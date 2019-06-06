@@ -5,6 +5,7 @@ const md5 = require('md5');
 const path = require('path');
 const logger = require('@janiscommerce/logger');
 const redis = require('redis');
+const CacheManagerError = require('./cache-manager-error');
 
 /**
 *    RedisManager class - Static
@@ -28,9 +29,10 @@ class RedisManager {
 		let config;
 
 		try {
+			// eslint-disable-next-line global-require
 			config = require(this.configPath);
 		} catch(error) {
-			throw new Error('Invalid config path');
+			throw new CacheManagerError('Invalid config path', CacheManagerError.codes.CONFIG_NOT_FOUND);
 		}
 
 		this._config = config;
@@ -153,7 +155,7 @@ class RedisManager {
 	static async set(key, subkey, value) {
 		// If there are no data to save throws Error
 		if(!key || !subkey || !value)
-			throw new Error('SET - Missing parametres.');
+			throw new CacheManagerError('SET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 
 		const newParams = this._prepareParams(subkey); // Encrypt params
 		await this.client.hset(this.getKey(key), newParams, JSON.stringify(value));
@@ -167,7 +169,7 @@ class RedisManager {
 	static async get(key, subkey) {
 		// If no data to search throws Error
 		if(!key || !subkey)
-			throw new Error('GET - Missing parametres.');
+			throw new CacheManagerError('GET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 
 		const value = await this.client.hget(this.getKey(key), this._prepareParams(subkey));
 		return value ? JSON.parse(value) : null;
@@ -199,20 +201,17 @@ class RedisManager {
 		await this.client.flushall('ASYNC');
 	}
 
-
 	/**
      * Close connection
      */
 	static close() {
 		return Promise.all(this.clients.map(client => {
-
 			const promise = new Promise(resolve => {
 				client.on('end', () => logger.info('Redis - server connection has closed'));
 				resolve();
 			});
 
 			client.quit();
-
 			return promise;
 		}));
 	}
