@@ -8,8 +8,21 @@ The cache-manager is a module for the management of cache, where data is stored 
 
 ## Installation
 
-```
+
+```js
 npm install @janiscommerce/cache-manager
+```
+
+In order to work, the package needs a configuration file at the root of the application specifying the port and the host it uses for its redis server.
+```js
+path/to/root/config.json
+```
+The expected object in config.json should be:
+```js
+{
+    host: 'localhost',
+    port: 6739
+}
 ```
 
 ## Usage:
