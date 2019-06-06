@@ -3,7 +3,6 @@
 class CacheManagerError extends Error {
 
 	static get codes() {
-
 		return {
 			CONFIG_NOT_FOUND: 1,
 			MISSING_PARAMETRES: 2
