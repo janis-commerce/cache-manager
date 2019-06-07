@@ -36,6 +36,11 @@ class MemoryManager {
 		logger.info(`Cache memory - Client: ${this.keyPrefix}`);
 	}
 
+	/**
+	 *
+	 * @param {String} client name of client.
+	 * @returns {String} client name.
+	 */
 	static validClient(client) {
 		if(typeof client === 'string')
 			return client;

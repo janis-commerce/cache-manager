@@ -90,6 +90,11 @@ class RedisManager {
 		this.promisify(this.client);
 	}
 
+	/**
+	 *
+	 * @param {String} client name of client.
+	 * @returns {String} client name.
+	 */
 	static validClient(client) {
 		if(typeof client === 'string')
 			return client;
