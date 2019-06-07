@@ -15,7 +15,7 @@ npm install @janiscommerce/cache-manager
 
 In order to work, the package needs a configuration file at the root of the application specifying the port and the host it uses for its redis server.
 ```js
-path/to/root/config.json
+path/to/root/config/redis.json
 ```
 The expected object in config.json should be:
 ```js
@@ -43,9 +43,9 @@ CacheManager.save('key', 'subkey', { message: 'hello friend' })
 ### fetch data
 ```js
 // fetched data in the fastest first strategy and then in the rest
-CacheManager.fetch('key', 'subkey').then(data => {
-    console.log(data) // '{ message: 'hello friend' }
-})
+const data = await CacheManager.fetch('key', 'subkey')
+console.log(data) // '{ message: 'hello friend' }
+
 ```
 
 ### reset cache
@@ -58,16 +58,16 @@ await CacheManager.resetEntity('key');
 ```
 
 ## API 
-- `initialize('string client')`
-Initialize the cache manager. Receives as a parameter a string to be able to use it as a prefix
-- `save('string key', 'string subkey', 'value')`
-Save data in memory and redis
-- `fetched('string key', 'string subkey')`
-Fetched data in the fastest strategy. Returns a promise. In case of not found a value returns null
+- `initialize('client')`
+Initialize the cache manager. Receives as a parameter a client [string] to be able to use it as a prefix.
+- `save('key', 'subkey', 'some value')`
+Save data in memory and redis. Receives a key [string], a subkey [string] and value to save.
+- `fetched('key', 'subkey')`
+Fetched data in the fastest strategy. Receives the key [string] and subkey [string] as parameter with which the value was saved. Returns a promise. In case of not found a value returns null
 - `reset()`
 Delete all entities in cache
-- `resetEntity('string key')`
-Delete a especific entity in cache
+- `resetEntity('key')`
+Delete a especific entity in cache. Receives the key [string] of the entity to be deleted
 
 You can also use redis or memory independently as follows
 ```js
@@ -80,20 +80,20 @@ CacheManager.redis.[method]
 
 #### API memory
 
-- `initialize('string client')`
-Initialize the memory manager if you did not previously with the cache manager initializer. Receives as a parameter a string to be able to use it as a prefix
+- `initialize('client')`
+Initialize the memory manager if you did not previously with the cache manager initializer. Receives as a parameter a client [string] to be able to use it as a prefix
 
-- `set('string key', 'string subkey', 'value')`
-Save data
+- `set('key', 'subkey', 'some value')`
+Save data. Receives a key [string], a subkey [string] and value to save.
 
-- `get('string key', 'string subkey')`
-Fetched data. Returns a promise. In case of not found a value returns undefined
+- `get('key', 'subkey')`
+Fetched data. Receives the key [string] and subkey [string] as parameter with which the value was saved. Returns a promise. In case of not found a value returns undefined
 
 - `reset()`
 Delete all entities
 
-- `reset('string key')`
-Delete a especific entity
+- `reset('key')`
+Delete a especific entity. Receives the key [string] of the entity to be deleted
 
 - `prune()`
 Pruning old entries
@@ -129,20 +129,20 @@ console.log(keymem) // undefined
 
 
 #### API redis
-- `initialize('string client)`
-Initialize the redis manager if you did not previously with the cache manager initializer. Receives as a parameter a string to be able to use it as a prefix
+- `initialize('client)`
+Initialize the redis manager if you did not previously with the cache manager initializer. Receives as a parameter a client [string] to be able to use it as a prefix
 
-- `set('string key', 'string subkey', 'value')`
-Save data
+- `set('key', 'subkey', 'some value')`
+Save data. Receives a key [string], a subkey [string] and value to save.
 
-- `get('string key', 'string subkey')`
-Fetched data in the fastest strategy. Returns a promise. In case of not found a value returns null
+- `get('key', 'subkey')`
+Fetched data in the fastest strategy. Receives the key [string] and subkey [string] as parameter with which the value was saved. Returns a promise. In case of not found a value returns null
 
 - `reset()`
 Delete all entities in cache
 
-- `reset('string key')`
-Delete a especific entity in cache
+- `reset('key')`
+Delete a especific entity in cache. Receives the key [string] of the entity to be deleted
 
 - `close()`
 Close connection
@@ -156,9 +156,9 @@ CacheManager.redis.set('red', 'subkey', { cache: 'redis' });
 CacheManager.redis.set('red-2', 'sub-2', 'redis-2');
 
 // get data
-CacheManager.redis.get('red', 'subkey').then(data => {
-	console.log(data); // { cache: 'redis' }
-});
+const data = CacheManager.redis.get('red', 'subkey')
+console.log(data); // { cache: 'redis' }
+
 
 // delete key red-2
 await CacheManager.redis.reset('red-2');
@@ -176,7 +176,5 @@ console.log(red); // null
 
 // close connection
 CacheManager.redis.close();
-
-
 ```
 

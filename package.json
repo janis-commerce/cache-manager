@@ -1,21 +1,20 @@
 {
-  "name": "cache-manager",
+  "name": "@janiscommerce/cache-manager",
   "version": "1.0.0",
-  "description": "paquete manager para el manejo de cache",
+  "description": "module for the management of cache",
   "main": "index.js",
   "scripts": {
     "test": "export TEST_ENV=true; mocha --exit -R nyan --recursive tests/",
     "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive tests/",
     "coverage": "nyc npm test",
-    "test-ci": "nyc --reporter=html --reporter=text mocha --recursive tests/",
-    "start": "node develop.js"
+    "test-ci": "nyc --reporter=html --reporter=text mocha --recursive tests/"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/janis-commerce/cache-manager.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Janis",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/janis-commerce/cache-manager/issues"
