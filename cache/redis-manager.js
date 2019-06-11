@@ -8,14 +8,18 @@ const redis = require('redis');
 const CacheManagerError = require('./cache-manager-error');
 
 /**
-*    RedisManager class - Static
+*    RedisManager class - 
 */
 class RedisManager {
+
+	static get MS() {
+		return process.env.MICROSERVICE || 'node';
+	}
 
 	/**
      * Get the Redis Config JSON path
      */
-	static get configPath() {
+	get configPath() {
 
 		return path.join(process.cwd(), 'config/redis.json');
 	}
@@ -24,7 +28,7 @@ class RedisManager {
      * Cache the Redis config.
 	* @param {String} route Config JSON path
      */
-	static cacheConfig() {
+	cacheConfig() {
 
 		let config;
 
@@ -42,22 +46,22 @@ class RedisManager {
      * Get the Redis config
      * @return {object}
      */
-	static get config() {
+	get config() {
 		if(!this._config)
 			this.cacheConfig();
 
 		return this._config;
 	}
 
-	static set keyPrefix(prefix) {
+	set keyPrefix(prefix) {
 		this._keyPrefix = prefix;
 	}
 
-	static get keyPrefix() {
+	get keyPrefix() {
 		return this._keyPrefix;
 	}
 
-	static getKey(key) {
+	getKey(key) {
 		return `${this.keyPrefix}${key}`;
 	}
 
@@ -66,7 +70,7 @@ class RedisManager {
     * @param {object} params The parameters
     * @return {String} encoded parameters
     */
-	static _prepareParams(params) {
+	_prepareParams(params) {
 		return md5(JSON.stringify({
 			_MS: this.MS,
 			...params
@@ -77,10 +81,7 @@ class RedisManager {
      * Initialize a Redis Client in order to be ready to use.
      * @param {String} client Name of the Client.
      */
-	static initialize(client) {
-
-		if(this.client)
-			return;
+	constructor(client) {
 
 		this.keyPrefix = this.validClient(client);
 		this.clients = [];
@@ -95,7 +96,7 @@ class RedisManager {
 	 * @param {String} client name of client.
 	 * @returns {String} client name.
 	 */
-	static validClient(client) {
+	validClient(client) {
 		if(typeof client === 'string')
 			return client;
 		return 'DEFAULT_CLIENT';
@@ -106,8 +107,8 @@ class RedisManager {
      *    @param {object} options - Redis client options
      *    @return {object} redis client
      */
-	static createClient(options = {}) {
-		const { host, port } = RedisManager.configServer();
+	createClient(options = {}) {
+		const { host, port } = this.configServer();
 
 		const defaults = {
 			host,
@@ -117,14 +118,14 @@ class RedisManager {
 		const client = this.clientRedis(defaults, options);
 
 		client.on('connect', () => {
-			logger.info(`Redis - connected to ${host}:${port} - Client: ${this.keyPrefix}`);
+			logger.info(`Redis - Client: ${this.keyPrefix} | connected to ${host}:${port}`);
 			this.inited = true;
 		});
 
 		client.on('error', err => logger.error(err.message));
 
 		client.on('reconnecting', () => {
-			logger.warn(`Redis - reconnecting - Client: ${this.keyPrefix}`);
+			logger.warn(`Redis - Client: ${this.keyPrefix} | reconnecting`);
 		});
 
 		this.clients.push(client); // for close latter
@@ -132,7 +133,7 @@ class RedisManager {
 		return client;
 	}
 
-	static configServer() {
+	configServer() {
 		const host = this.config.host || 'localhost';
 		const port = this.config.port || 6739;
 		return { host, port };
@@ -142,14 +143,14 @@ class RedisManager {
 	 * @param {Object} defaults configs
 	 * @param {Object} options properties
 	 */
-	static clientRedis(defaults, options) {
+	clientRedis(defaults, options) {
 		return redis.createClient({ ...defaults, ...options });
 	}
 
 	/**
      *    Promisify redis methods
      */
-	static promisify() {
+	promisify() {
 
 		const methods = ['hset', 'hget', 'hdel', 'del', 'flushall']; // Add more methods if needed
 
@@ -163,7 +164,7 @@ class RedisManager {
      *@param {String} subkey Parametres, will be encryptic
      *@param {*} value Results
      */
-	static async set(key, subkey, value) {
+	async set(key, subkey, value) {
 		// If there are no data to save throws Error
 		if(!key || !subkey || !value)
 			throw new CacheManagerError('SET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
@@ -177,7 +178,7 @@ class RedisManager {
      * @param {String} key Entity
      * @param {params} subkey Parametres, will be encryptic
      */
-	static async get(key, subkey) {
+	async get(key, subkey) {
 		// If no data to search throws Error
 		if(!key || !subkey)
 			throw new CacheManagerError('GET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
@@ -190,7 +191,7 @@ class RedisManager {
 	 * Clear the cache entirely
 	 * @param {String} key
 	 */
-	static async reset(key = null) {
+	async reset(key = null) {
 		if(!key) // No Key, Delete All
 			await this.resetAll();
 		else // If only have key, Delete Entity
@@ -201,24 +202,25 @@ class RedisManager {
      * Delete an Entity and all its registries
      * @param {String} key Entity
      */
-	static async resetEntity(key) {
+	async resetEntity(key) {
+		console.log('borrando')
 		await this.client.del(this.getKey(key));
 	}
 
 	/**
 	* Delete all entities.
 	*/
-	static async resetAll() {
+	async resetAll() {
 		await this.client.flushall('ASYNC');
 	}
 
 	/**
      * Close connection
      */
-	static close() {
+	close() {
 		return Promise.all(this.clients.map(client => {
 			const promise = new Promise(resolve => {
-				client.on('end', () => logger.info('Redis - server connection has closed'));
+				client.on('end', () => logger.info(`Redis - Client: ${this.keyPrefix} | Server connection has closed`));
 				resolve();
 			});
 
