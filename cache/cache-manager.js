@@ -7,11 +7,11 @@ const MemoryManager = require('./memory-manager');
 const STRATEGIES = ['memory', 'redis'];
 
 class CacheManager {
-	static set client(client) {
+	set client(client) {
 		this._client = client;
 	}
 
-	static get client() {
+	get client() {
 		return this._client;
 	}	
 
@@ -19,17 +19,17 @@ class CacheManager {
    * Initialize All the Strategies.
    * @param {string} client Name of the Client
    */
-	static initialize(client) {
-		if(this.client)
-			return;
+	constructor(client) {
+		/* if(this.client)
+			return; */
 
 		this.client = this.validClient(client);
 
-		MemoryManager.initialize(this.client);
-		RedisManager.initialize(this.client);
+		this.memory = new MemoryManager(this.client);
+		this.redis = new RedisManager(this.client);
 		// Clean before start using.
-		MemoryManager.reset();
-		RedisManager.reset();
+		/* MemoryManager.reset();
+		RedisManager.reset(); */
 	}
 
 	/**
@@ -37,7 +37,7 @@ class CacheManager {
 	 * @param {String} client name of client.
 	 * @returns {String} client name.
 	 */
-	static validClient(client) {
+	validClient(client) {
 		if(typeof client === 'string')
 			return client;
 		return 'DEFAULT_CLIENT';
@@ -46,16 +46,18 @@ class CacheManager {
 	/**
    * Returns Memory Manager. Needs to be intialized.
    */
-	static get memory() {
-		return MemoryManager;
-	}
+	/* get memory() {
+		return this.memory;
+	} */
 
 	/**
    * Returns Redis Manager. Needs to be intialized.
    */
-	static get redis() {
-		return RedisManager;
-	}
+	/* get redis() {
+		return this.redis;
+	} */
+
+
 
 	/**
    * Save date All strategies.
@@ -63,7 +65,7 @@ class CacheManager {
    * @param {string} params Parametres
    * @param {*} results Values to be saved
    */
-	static save(entity, params, results) {
+	save(entity, params, results) {
 		this.memory.set(entity, params, results);
 		this.redis.set(entity, params, results);
 	}
@@ -74,10 +76,10 @@ class CacheManager {
    * @param {string} params Parametres
    * @param {*} results Values
    */
-	static async fetch(entity, params, results) {
+	async fetch(entity, params) {
 
 		// Search in Memory (LRU) first
-		let fetched = await this.memory.get(entity, params, results);
+		let fetched = await this.memory.get(entity, params);
 
 		if(typeof fetched !== 'undefined') {
 			logger.info('Cache - Found in memory.');
@@ -85,7 +87,7 @@ class CacheManager {
 		}
 
 		// If in the memory not Found, search in Redis
-		fetched = await this.redis.get(entity, params, results);
+		fetched = await this.redis.get(entity, params);
 
 		if(fetched !== null) {
 			logger.info('Cache - Found in Redis.');
@@ -102,19 +104,19 @@ class CacheManager {
    * Reset cache memorys in all strategies
    * @param {string} entity Entity
    */
-	static async reset(key = null) {
+	async reset(key = null) {
 
 		if(key)
-			return this.resetEntity(key);
+			return this._resetEntity(key);
 
-		return this.cleanAll('reset');
+		return this._cleanAll('reset');
 	}
 
 	/**
 	 * Reset entity in all strategies
 	 * @param {String} entity Entity
 	 */
-	static async resetEntity(entity) {
+	async _resetEntity(entity) {
 		await this.cleanEntity(entity, 'reset');
 	}
 
@@ -123,7 +125,7 @@ class CacheManager {
    * @param {string} entity Entity
    * @param {string} method Method to clean ('reset' or 'prune')
    */
-	static async cleanAll(method) {
+	async _cleanAll(method) {
 		STRATEGIES.forEach(async strategy => {
 			await this[strategy][method]();
 		});
@@ -134,7 +136,7 @@ class CacheManager {
    * @param {string} entity Entity
    * @param {string} method Method to clean ('reset')
    */
-	static async cleanEntity(entity, method) {
+	async cleanEntity(entity, method) {
 		STRATEGIES.forEach(async strategy => {
 			await this[strategy][method](entity);
 		});

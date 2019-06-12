@@ -6,20 +6,19 @@ const logger = require('@janiscommerce/logger');
 const CacheManagerError = require('./cache-manager-error');
 
 /**
- *	MemoryManager class - Static
- */
+ *	MemoryManager class -  */
 
 class MemoryManager {
 
-	static get MS() {
+	get MS() {
 		return process.env.MICROSERVICE || 'node';
 	}
 
-	static set keyPrefix(prefix) {
+	set keyPrefix(prefix) {
 		this._keyPrefix = prefix;
 	}
 
-	static get keyPrefix() {
+	get keyPrefix() {
 		return this._keyPrefix;
 	}
 
@@ -27,10 +26,7 @@ class MemoryManager {
 	 * Initialize a Memory Instances in order to be ready to use
 	 * @param {string} client Name of the Client
 	 */
-	static initialize(client) {
-		if(this.keyPrefix)
-			return;
-
+	constructor(client) {		
 		this.instances = {};
 		this.keyPrefix = this.validClient(client);
 		logger.info(`Cache memory - Client: ${this.keyPrefix}`);
@@ -41,7 +37,7 @@ class MemoryManager {
 	 * @param {String} client name of client.
 	 * @returns {String} client name.
 	 */
-	static validClient(client) {
+	validClient(client) {
 		if(typeof client === 'string')
 			return client;
 		return 'DEFAULT_CLIENT';
@@ -52,7 +48,7 @@ class MemoryManager {
 	 * @param {string} key
 	 * @returns {string}
 	 */
-	static getInstanceKey(key) {
+	getInstanceKey(key) {
 		return `${this.keyPrefix}${key}`;
 	}
 
@@ -61,7 +57,7 @@ class MemoryManager {
 	 * @param {string} key
 	 * @returns {boolean}
 	 */
-	static checkInstance(key) {
+	checkInstance(key) {
 		return typeof this.instances[key] !== 'undefined';
 	}
 
@@ -70,7 +66,7 @@ class MemoryManager {
 	 * @param {string} key
 	 * @returns {object} LRU-Instance
 	 */
-	static getInstance(key) {
+	getInstance(key) {
 		key = this.getInstanceKey(key);
 
 
@@ -91,7 +87,7 @@ class MemoryManager {
 	 * @param {string} subkey Parametres
 	 * @returns {string}
 	 */
-	static getKey(key, subkey = '') {
+	getKey(key, subkey = '') {
 		return subkey !== '' ? `${key}-${subkey}` : key;
 	}
 
@@ -100,7 +96,7 @@ class MemoryManager {
      * @param {object} params The parameters
      * @return {string} encoded parameters
      */
-	static _prepareParams(params) {
+	_prepareParams(params) {
 		return md5(JSON.stringify({
 			_MS: this.MS,
 			...params
@@ -114,7 +110,7 @@ class MemoryManager {
 	 * @param {string} value Results
 	 * @returns {boolean} true if success.
 	 */
-	static set(key, subkey, value) {
+	set(key, subkey, value) {
 
 		if(!key || !subkey || !value)
 			throw new CacheManagerError('SET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
@@ -128,7 +124,7 @@ class MemoryManager {
 	 * @param {string} subkey Parametres
 	 * @returns {*} Results, 'undefined' if not found
 	 */
-	static async get(key, subkey) {
+	async get(key, subkey) {
 		if(!key || !subkey)
 			throw new CacheManagerError('GET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 		return this.getInstance(key).get(this.getKey(key, this._prepareParams(subkey)));
@@ -139,7 +135,7 @@ class MemoryManager {
 	 * @param {string=} key entity. Delete All by Default
 	 * @returns {Promise}
 	 */
-	static async reset(key = null) {
+	async reset(key = null) {
 		if(key) {
 			key = this.getInstanceKey(key);
 			if(this.checkInstance(key))
@@ -153,7 +149,7 @@ class MemoryManager {
 	 * Delete all instances on the next loop
 	 * @returns {Array} Array length = Number of Instances deleted
 	 */
-	static resetAll() {
+	resetAll() {
 
 		if(Object.keys(this.instances).length === 0)
 			return null;
@@ -168,7 +164,7 @@ class MemoryManager {
 	 * @param {string} key Instance
 	 * @returns {Promise}
 	 */
-	static async _resetEntity(key) {
+	async _resetEntity(key) {
 		this.instances[key].reset();
 	}
 
@@ -177,7 +173,7 @@ class MemoryManager {
 	 * @param {string=} key Instance. Delete All by Default
 	 * @returns {Promise}
 	 */
-	static async prune() {
+	async prune() {
 		return this._pruneAll();
 	}
 
@@ -185,7 +181,7 @@ class MemoryManager {
 	 * Prune All Instances
 	 * @returns {Promise}
 	 */
-	static _pruneAll() {
+	_pruneAll() {
 
 		return Promise.all(
 			Object.keys(this.instances).map(key => this._pruneEntity(key))
@@ -196,7 +192,7 @@ class MemoryManager {
 	 * Prune a single Instance
 	 * @param {string} key Entity
 	 */
-	static _pruneEntity(key) {
+	_pruneEntity(key) {
 		this.instances[key].prune();
 	}
 }

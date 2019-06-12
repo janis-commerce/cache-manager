@@ -12,9 +12,9 @@ const CacheManagerError = require('./cache-manager-error');
 */
 class RedisManager {
 
-	static get MS() {
+	/* static get MS() {
 		return process.env.MICROSERVICE || 'node';
-	}
+	} */
 
 	/**
      * Get the Redis Config JSON path
@@ -97,9 +97,9 @@ class RedisManager {
 	 * @returns {String} client name.
 	 */
 	validClient(client) {
-		if(typeof client === 'string')
-			return client;
-		return 'DEFAULT_CLIENT';
+		if(typeof client !== 'string')
+			throw new CacheManagerError('Invalid client.', CacheManagerError.codes.MISSING_PARAMETRES);
+		return client;
 	}
 
 	/**
@@ -203,7 +203,6 @@ class RedisManager {
      * @param {String} key Entity
      */
 	async resetEntity(key) {
-		console.log('borrando')
 		await this.client.del(this.getKey(key));
 	}
 

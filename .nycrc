@@ -3,7 +3,9 @@
 		".eslintrc.js", 
 		"tests/",
 		"coverage/",
-		".travis.yml"
+		".travis.yml",
+		"develop.js",
+		"develop2.js"
 	],
 	"cache": true,
 	"all": true,
