@@ -3,8 +3,9 @@
 const logger = require('@janiscommerce/logger');
 const RedisManager = require('./redis-manager');
 const MemoryManager = require('./memory-manager');
+const path = require('path')
 
-const STRATEGIES = ['memory', 'redis'];
+const STRATEGIES = ['redis'];
 
 class CacheManager {
 	set client(client) {
@@ -13,7 +14,7 @@ class CacheManager {
 
 	get client() {
 		return this._client;
-	}	
+	}
 
 	/**
    * Initialize All the Strategies.
@@ -25,12 +26,13 @@ class CacheManager {
 
 		this.client = this.validClient(client);
 
-		this.memory = new MemoryManager(this.client);
-		this.redis = new RedisManager(this.client);
+		this.memory = null;
+		this.redis = null;
 		// Clean before start using.
 		/* MemoryManager.reset();
 		RedisManager.reset(); */
 	}
+
 
 	/**
 	 *
@@ -66,8 +68,25 @@ class CacheManager {
    * @param {*} results Values to be saved
    */
 	save(entity, params, results) {
-		this.memory.set(entity, params, results);
-		this.redis.set(entity, params, results);
+		STRATEGIES.forEach(strategy => {
+			if(this.checkDependency(strategy)) {
+				if(this[strategy])
+					this[strategy].set(entity, params, results);
+			}
+		});
+	}
+
+	initDependency(dependency){
+		this[dependency] = 
+	}
+
+	checkDependency(dependency) {
+		try {
+			// eslint-disable-next-line global-require
+			return !!require(path.join(process.cwd(), 'node_modules', dependency));
+		} catch(err) {
+			throw new Error('dependencia no instalada');
+		}
 	}
 
 	/**

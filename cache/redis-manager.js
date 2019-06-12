@@ -34,7 +34,7 @@ class RedisManager {
 
 		try {
 			// eslint-disable-next-line global-require
-			config = require(this.configPath);
+			config = require(path.join(process.cwd(), 'config/redis.json'));
 		} catch(error) {
 			throw new CacheManagerError('Invalid config path', CacheManagerError.codes.CONFIG_NOT_FOUND);
 		}

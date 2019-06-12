@@ -1,5 +1,9 @@
+/* eslint-disable import/no-dynamic-require */
 /* eslint-disable no-console */
+
 'use strict';
+
+const path = require('path');
 
 const { RedisManager, MemoryManager, CacheManager } = require('./cache/');
 
@@ -92,16 +96,18 @@ async function memory() {
 
 async function cache() {
 	const cache1 = new CacheManager('PRIMERA');
-	const cache3 = new CacheManager('SEGUNDA');
+	// const cache3 = new CacheManager('SEGUNDA');
 
 	// set data
 	cache1.save('k1', 'sk1', { value: '1-sk1' });
-	cache1.save('k1', 'sk2', { value: '1-sk2' });
+	const sk1 = await cache1.redis.get('k1', 'sk1');
+	console.log(sk1);
+	/* cache1.save('k1', 'sk2', { value: '1-sk2' });
 	cache1.save('k1', 'sk3', { value: '11-sk1' });
 
 	cache3.save('k3', 'sk3', { value: '3-sk3' });
 	cache3.save('k3', 'sk33', { value: '3-sk33' });
-	cache3.save('k33', 'sk333', { value: '33-sk333' });
+	cache3.save('k33', 'sk333', { value: '33-sk333' }); */
 
 	/* console.log(cache1.client);
 	cache1.client = 'fedex';
@@ -110,36 +116,35 @@ async function cache() {
 
 	// reset
 	// cache1.reset();
-	cache3.redis.reset('k3');
+	// cache3.redis.reset('k3');
 	// cache1.redis.reset('k2');
 	// cache3.reset();
 
 	// get
-	const sk11 = await cache1.fetch('k1', 'sk1');
+/* 	const sk11 = await cache1.fetch('k1', 'sk1');
 	const sk12 = await cache1.fetch('k1', 'sk2');
 	const sk13 = await cache1.fetch('k1', 'sk3');
 
 	const sk3 = await cache3.redis.get('k3', 'sk3');
 	const sk33 = await cache3.redis.get('k3', 'sk33');
-	const sk333 = await cache3.redis.get('k33', 'sk333');
+	const sk333 = await cache3.redis.get('k33', 'sk333'); */
 
 	// print data
 
-	
-	console.log('-----------------------CACHE1');
+
+	/* console.log('-----------------------CACHE1');
 	console.log(sk11);
 	console.log(sk12);
 	console.log(sk13);
-	
+
 
 	setImmediate(() => {
 		console.log('----------------------CACHE3');
 		console.log(sk3);
 		console.log(sk33);
 		console.log(sk333);
-	})
+	}); */
 
-	
 
 	// console.log(cache1.redis.clients);
 	// cache3.redis.close();
@@ -147,3 +152,5 @@ async function cache() {
 }
 
 cache();
+
+
