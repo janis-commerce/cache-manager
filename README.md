@@ -1,10 +1,11 @@
-# Cache Manager
+# cache-manager
 
 [![Build Status](https://travis-ci.org/janis-commerce/cache-manager.svg?branch=JCN-52-memory-manager)](https://travis-ci.org/janis-commerce/cache-manager)
 [![Coverage Status](https://coveralls.io/repos/github/janis-commerce/cache-manager/badge.svg?branch=JCN-52-memory-manager)](https://coveralls.io/github/janis-commerce/cache-manager?branch=JCN-52-memory-manager)
 
 
-The cache-manager is a module for the management of cache, where data is stored in each cache strategy and retrieved first from the one with the highest priority. 
+The cache-manager is a module for the management of cache, where data is stored in each cache strategy and retrieved first from the one with the highest priority. it is possible to use memory or redis individually if required
+
 
 ## Installation
 
@@ -33,14 +34,14 @@ const CacheManager = require('@janiscommerce/cache-manager')
 CacheManager.initialize('Client');
 ```
 
-### save data
+### How to save data?
 
 ```js
 
 // save in all cache strategies
 CacheManager.save('key', 'subkey', { message: 'hello friend' })
 ```
-### fetch data
+### How to fetch data?
 ```js
 // fetched data in the fastest first strategy and then in the rest
 const data = await CacheManager.fetch('key', 'subkey')
@@ -48,7 +49,7 @@ console.log(data) // '{ message: 'hello friend' }
 
 ```
 
-### reset cache
+### How to reset cache?
 ```js
 // reset all entities in all strategies
 await CacheManager.reset();
@@ -58,7 +59,7 @@ await CacheManager.resetEntity('key');
 ```
 
 ## API 
-- `initialize('client')`
+- `initialize('client-prefix')`
 Initialize the cache manager. Receives as a parameter a client [string] to be able to use it as a prefix.
 - `save('key', 'subkey', 'some value')`
 Save data in memory and redis. Receives a key [string], a subkey [string] and value to save.
@@ -80,7 +81,7 @@ CacheManager.redis.[method]
 
 #### API memory
 
-- `initialize('client')`
+- `initialize('client-prefix')`
 Initialize the memory manager if you did not previously with the cache manager initializer. Receives as a parameter a client [string] to be able to use it as a prefix
 
 - `set('key', 'subkey', 'some value')`
@@ -129,7 +130,7 @@ console.log(keymem) // undefined
 
 
 #### API redis
-- `initialize('client)`
+- `initialize('client-prefix)`
 Initialize the redis manager if you did not previously with the cache manager initializer. Receives as a parameter a client [string] to be able to use it as a prefix
 
 - `set('key', 'subkey', 'some value')`

@@ -122,8 +122,12 @@ class CacheManager {
 
 		for(const strategy of STRATEGIES) {
 			fetched = await this.use(strategy).get(entity, params);
+
 			if(typeof fetched !== 'undefined' && fetched !== null) {
 				logger.info(`Cache - Found in ${strategy}`);
+
+				if(strategy !== 'memory')
+					this.use('memory').set(entity, params, fetched);
 				break;
 			}
 		}

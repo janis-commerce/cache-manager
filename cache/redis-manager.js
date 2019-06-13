@@ -8,13 +8,13 @@ const redis = require('redis');
 const CacheManagerError = require('./cache-manager-error');
 
 /**
-*    RedisManager class - 
+*    RedisManager class
 */
 class RedisManager {
 
-	/* static get MS() {
+	get MS() {
 		return process.env.MICROSERVICE || 'node';
-	} */
+	}
 
 	/**
      * Get the Redis Config JSON path
@@ -33,8 +33,7 @@ class RedisManager {
 		let config;
 
 		try {
-			// eslint-disable-next-line global-require
-			config = require(path.join(process.cwd(), 'config/redis.json'));
+			config = require(this.configPath);
 		} catch(error) {
 			throw new CacheManagerError('Invalid config path', CacheManagerError.codes.CONFIG_NOT_FOUND);
 		}
@@ -78,12 +77,12 @@ class RedisManager {
 	}
 
 	/**
-     * Initialize a Redis Client in order to be ready to use.
-     * @param {String} client Name of the Client.
+     * Initialize a Redis prefix in order to be ready to use.
+     * @param {String} prefix Name of the client-prefix.
      */
-	constructor(client) {
+	constructor(clientPrefix) {
 
-		this.keyPrefix = this.validClient(client);
+		this.keyPrefix = this.validClientPrefix(clientPrefix);
 		this.clients = [];
 		this.inited = null;
 
@@ -93,19 +92,19 @@ class RedisManager {
 
 	/**
 	 *
-	 * @param {String} client name of client.
-	 * @returns {String} client name.
+	 * @param {String} prefix name of prefix.
+	 * @returns {String} prefix name.
 	 */
-	validClient(client) {
-		if(typeof client !== 'string')
-			throw new CacheManagerError('Invalid client.', CacheManagerError.codes.MISSING_PARAMETRES);
-		return client;
+	validClientPrefix(clientPrefix) {
+		if(typeof clientPrefix !== 'string')
+			throw new CacheManagerError('Invalid client-prefix.', CacheManagerError.codes.MISSING_PARAMETRES);
+		return clientPrefix;
 	}
 
 	/**
-     *    Create a redis client
-     *    @param {object} options - Redis client options
-     *    @return {object} redis client
+     *    Create a redis prefix
+     *    @param {object} options - Redis prefix options
+     *    @return {object} redis prefix
      */
 	createClient(options = {}) {
 		const { host, port } = this.configServer();
@@ -118,14 +117,14 @@ class RedisManager {
 		const client = this.clientRedis(defaults, options);
 
 		client.on('connect', () => {
-			logger.info(`Redis - Client: ${this.keyPrefix} | connected to ${host}:${port}`);
+			logger.info(`Redis - Prefix: ${this.keyPrefix} | connected to ${host}:${port}`);
 			this.inited = true;
 		});
 
 		client.on('error', err => logger.error(err.message));
 
 		client.on('reconnecting', () => {
-			logger.warn(`Redis - Client: ${this.keyPrefix} | reconnecting`);
+			logger.warn(`Redis - Prefix: ${this.keyPrefix} | reconnecting`);
 		});
 
 		this.clients.push(client); // for close latter
@@ -219,7 +218,7 @@ class RedisManager {
 	close() {
 		return Promise.all(this.clients.map(client => {
 			const promise = new Promise(resolve => {
-				client.on('end', () => logger.info(`Redis - Client: ${this.keyPrefix} | Server connection has closed`));
+				client.on('end', () => logger.info(`Redis - Prefix: ${this.keyPrefix} | Server connection has closed`));
 				resolve();
 			});
 

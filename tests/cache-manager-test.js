@@ -4,7 +4,7 @@ const assert = require('assert');
 const sandbox = require('sinon').createSandbox();
 const redisMock = require('redis-mock');
 const mockRequire = require('mock-require');
-const redis = require('redis');
+// const redis = require('redis');
 const CacheManager = require('../index');
 
 describe('Cache Manager Test', () => {

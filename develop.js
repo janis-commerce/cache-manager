@@ -87,9 +87,14 @@ async function cacheAll() {
 async function cachepart() {
 	const ca = new CacheManager('prefix');
 
-	ca.use('redis').set('k1', 's1', 'cas1');
+	ca.use('memory').set('k1', 's1', 'cas1');
 
-	const res = await ca.fetch('k1', 's1');
-	console.log(res);
+	/* const res = await ca.fetch('k1', 's1');
+	console.log(res); */
+
+	ca.use('memory').reset();
+
+	const res1 = await ca.fetch('k1', 's1');
+	console.log(res1);
 }
 cachepart();

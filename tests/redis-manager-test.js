@@ -6,17 +6,17 @@ const assert = require('assert');
 const sandbox = require('sinon').createSandbox();
 const redisMock = require('redis-mock');
 const mockRequire = require('mock-require');
-const redis = require('redis');
-const { RedisManager, CacheManagerError } = require('../cache');
+
+mockRequire('redis', redisMock);
+const RedisManager = require('../cache/redis-manager');
+const { CacheManagerError } = require('../cache');
+
 
 describe.only('Redis Manager', function() {
 
 	context('with mocks', () => {
 
 		let newRedis;
-		sandbox
-			.stub(redis, 'createClient')
-			.returns(redisMock.createClient());
 
 		before(() => {
 
@@ -24,6 +24,7 @@ describe.only('Redis Manager', function() {
 				hosty: 'localhost5',
 				porty: 63797
 			};
+
 			newRedis = new RedisManager('tests');
 			mockRequire(newRedis.configPath, configs);
 		});
@@ -33,8 +34,8 @@ describe.only('Redis Manager', function() {
 			sandbox.restore();
 		});
 
-		it('invalid client', () => {
-			assert.throws(() => newRedis.validClient({ prefix: 'algo' }));
+		it('invalid client-prefix', () => {
+			assert.throws(() => newRedis.validClientPrefix({ prefix: 'algo' }));
 		});
 
 		it('redis prefix', () => {
@@ -126,8 +127,9 @@ describe.only('Redis Manager', function() {
 			sandbox.restore();
 		});
 	});
+});
 
-	/* context('with mocks', () => {
+/* context('with mocks', () => {
 
 		const newRedis = new RedisManager('test redis');
 		before(() => {
@@ -136,8 +138,8 @@ describe.only('Redis Manager', function() {
 
 		beforeEach(function() {
 
-			// newRedis.initialize('Test');
-			// newRedis.client.setMaxListeners(15);
+			newRedis.initialize('Test');
+			newRedis.client.setMaxListeners(15);
 
 			const configs = {
 				hosty: 'localhost5',
@@ -242,5 +244,6 @@ describe.only('Redis Manager', function() {
 			newRedis.client.emit('reconnecting');
 			sandbox.assert.calledWith(spy);
 		});
-	}); */
-});
+	});
+
+*/

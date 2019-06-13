@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Redis Manager package`
 - `Memory Manager package`
 - `Cache Memory Manager package`
+- `Cache Manager Error package`
 - `Badges in readme`
 - `Docs`
 - `Tests`
+- `Coverage in tests`
 
 ### Improvements
-- `Coverage in tests`

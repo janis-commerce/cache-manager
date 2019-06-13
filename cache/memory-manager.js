@@ -26,7 +26,7 @@ class MemoryManager {
 	 * Initialize a Memory Instances in order to be ready to use
 	 * @param {string} client Name of the Client
 	 */
-	constructor(client) {		
+	constructor(client) {
 		this.instances = {};
 		this.keyPrefix = this.validClient(client);
 		logger.info(`Cache memory - Client: ${this.keyPrefix}`);
@@ -103,7 +103,6 @@ class MemoryManager {
 	}
 
 
-
 	/**
 	 * Save values in memory. If the Instance and Parametres exists override de value.
 	 * @param {string} key Intance
@@ -138,13 +137,22 @@ class MemoryManager {
 	 * @returns {Promise}
 	 */
 	async reset(key = null) {
-		if(key) {
+
+		if(!key)
+			return this.resetAll();
+
+		key = this.getInstanceKey(key);
+
+		if(this.checkInstance(key))
+			this._resetEntity(key);
+
+		/* if(key) {
 			key = this.getInstanceKey(key);
 			if(this.checkInstance(key))
 				return this._resetEntity(key);
 			return;
 		}
-		return this.resetAll();
+		return this.resetAll(); */
 	}
 
 	/**
