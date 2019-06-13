@@ -1,11 +1,11 @@
+/* eslint-disable import/no-dynamic-require */
+
 'use strict';
 
 const logger = require('@janiscommerce/logger');
-const RedisManager = require('./redis-manager');
-const MemoryManager = require('./memory-manager');
-const path = require('path')
+const path = require('path');
 
-const STRATEGIES = ['redis'];
+const STRATEGIES = ['memory', 'redis'];
 
 class CacheManager {
 	set client(client) {
@@ -31,6 +31,7 @@ class CacheManager {
 		// Clean before start using.
 		/* MemoryManager.reset();
 		RedisManager.reset(); */
+		logger.info(`Cache Manager - Client: ${this.client}`);
 	}
 
 
@@ -45,21 +46,23 @@ class CacheManager {
 		return 'DEFAULT_CLIENT';
 	}
 
-	/**
-   * Returns Memory Manager. Needs to be intialized.
-   */
-	/* get memory() {
-		return this.memory;
-	} */
+	use(strategy) {
 
-	/**
-   * Returns Redis Manager. Needs to be intialized.
-   */
-	/* get redis() {
-		return this.redis;
-	} */
+		if(this[strategy] === null) {
 
+			this.checkDependency(strategy);
+			this.initStrategy(strategy);
 
+			/* if(!this[strategy]) {
+				const MemoryManager = require('./memory-manager');
+				this[strategy] = new MemoryManager(this.client);
+				return this[strategy];
+			} */
+		}
+
+		return this[strategy];
+
+	}
 
 	/**
    * Save date All strategies.
@@ -72,20 +75,38 @@ class CacheManager {
 			if(this.checkDependency(strategy)) {
 				if(this[strategy])
 					this[strategy].set(entity, params, results);
+				 else {
+					this.initStrategy(strategy);
+					this[strategy].set(entity, params, results);
+				}
 			}
 		});
 	}
 
-	initDependency(dependency){
-		this[dependency] = 
+	initStrategy(dependency) {
+		console.log('-----INIT STRATEGY: ', dependency);
+		switch(dependency) {
+			case 'redis':
+				// eslint-disable-next-line no-case-declarations
+				const RedisManager = require('./redis-manager');
+				this.redis = new RedisManager(this.client);
+				break;
+			case 'memory':
+				const MemoryManager = require('./memory-manager');
+				this.memory = new MemoryManager(this.client);
+				break;
+			default:
+				throw new Error('estrategia no implementada');
+		}
 	}
 
-	checkDependency(dependency) {
+	checkDependency(strategy) {
+		const str = strategy === 'memory' ? 'lru-cache' : strategy;
 		try {
 			// eslint-disable-next-line global-require
-			return !!require(path.join(process.cwd(), 'node_modules', dependency));
+			return !!require(path.join(process.cwd(), 'node_modules', str));
 		} catch(err) {
-			throw new Error('dependencia no instalada');
+			throw new Error(`estrategia no instalada: ${strategy}`);
 		}
 	}
 
@@ -97,16 +118,43 @@ class CacheManager {
    */
 	async fetch(entity, params) {
 
+		let fetched;
+
+		for(const strategy of STRATEGIES) {
+			fetched = await this.use(strategy).get(entity, params);
+			if(typeof fetched !== 'undefined' && fetched !== null) {
+				logger.info(`Cache - Found in ${strategy}`);
+				break;
+			}
+		}
+
+		return fetched;
+
+		/* STRATEGIES.every(async strategy => {
+
+			fetched = await this.use(strategy).get(entity, params);
+			// console.log('resultado fetched: ', fetched, strategy);
+
+			if(fetched || typeof fetched !== 'undefined') {
+				// console.log(fetched, strategy);
+				logger.info(`Cache - Found in ${strategy}`);
+
+			}
+		});
+
+		return fetched || null; */
+
+
 		// Search in Memory (LRU) first
-		let fetched = await this.memory.get(entity, params);
+		/* let fetched = await this.memory.get(entity, params);
 
 		if(typeof fetched !== 'undefined') {
 			logger.info('Cache - Found in memory.');
 			return fetched;
-		}
+		} */
 
 		// If in the memory not Found, search in Redis
-		fetched = await this.redis.get(entity, params);
+		/* const fetched = await this.redis.get(entity, params);
 
 		if(fetched !== null) {
 			logger.info('Cache - Found in Redis.');
@@ -114,9 +162,8 @@ class CacheManager {
 			return fetched;
 		}
 
-		logger.info('Cache - not found.');
+		logger.info('Cache - not found.'); */
 
-		return null;
 	}
 
 	/**

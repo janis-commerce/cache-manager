@@ -69,7 +69,6 @@ class MemoryManager {
 	getInstance(key) {
 		key = this.getInstanceKey(key);
 
-
 		if(!this.checkInstance(key)) {
 			this.instances[key] = new LRU({
 				max: 500,
@@ -103,6 +102,8 @@ class MemoryManager {
 		}));
 	}
 
+
+
 	/**
 	 * Save values in memory. If the Instance and Parametres exists override de value.
 	 * @param {string} key Intance
@@ -111,7 +112,6 @@ class MemoryManager {
 	 * @returns {boolean} true if success.
 	 */
 	set(key, subkey, value) {
-
 		if(!key || !subkey || !value)
 			throw new CacheManagerError('SET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 		const newParams = this._prepareParams(subkey);
@@ -125,6 +125,8 @@ class MemoryManager {
 	 * @returns {*} Results, 'undefined' if not found
 	 */
 	async get(key, subkey) {
+
+
 		if(!key || !subkey)
 			throw new CacheManagerError('GET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 		return this.getInstance(key).get(this.getKey(key, this._prepareParams(subkey)));

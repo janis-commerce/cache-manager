@@ -9,10 +9,9 @@ const mockRequire = require('mock-require');
 const redis = require('redis');
 const { RedisManager, CacheManagerError } = require('../cache');
 
-describe('Redis Manager', function() {
+describe.only('Redis Manager', function() {
 
 	context('with mocks', () => {
-
 
 		let newRedis;
 		sandbox
