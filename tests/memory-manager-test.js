@@ -3,10 +3,11 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
-const { MemoryManager, CacheManagerError } = require('../cache');
+const { CacheManagerError } = require('../cache');
+const MemoryManager = require('../cache/memory-manager');
 
 
-describe('Memory Manager Tests', () => {
+describe.only('Memory Manager Tests', () => {
 
 	let memory;
 
@@ -18,12 +19,8 @@ describe('Memory Manager Tests', () => {
 		memory.reset();
 	});
 
-	it('should return the client entered', () => {
-		assert.equal(memory.validClient('Test'), 'Test');
-	});
-
-	it('should return the default client ', () => {
-		assert.equal(memory.validClient(), 'DEFAULT_CLIENT');
+	it('invalid client-prefix', () => {
+		assert.throws(() => memory.validClientPrefix({ prefix: 'algo' }));
 	});
 
 	it('should set and get data', async() => {		

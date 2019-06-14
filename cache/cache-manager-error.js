@@ -6,7 +6,7 @@ class CacheManagerError extends Error {
 		return {
 			CONFIG_NOT_FOUND: 1,
 			MISSING_PARAMETRES: 2,
-			INVALID_CLIENT: 3
+			INVALID_PREFIX: 3
 		};
 	}
 

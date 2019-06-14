@@ -1,11 +1,12 @@
 /* eslint-disable import/no-dynamic-require */
+/* eslint-disable no-case-declarations */
+/* eslint-disable global-require */
 
 'use strict';
 
 const logger = require('@janiscommerce/logger');
 const path = require('path');
-
-const STRATEGIES = ['memory', 'redis'];
+const CacheManagerError = require('./cache-manager-error');
 
 class CacheManager {
 	set client(client) {
@@ -16,6 +17,28 @@ class CacheManager {
 		return this._client;
 	}
 
+	get strategies() {
+		const str =
+		{
+			memory: {
+				dependency: 'lru-cache',
+				init: () => {
+					const RedisManager = require('./redis-manager');
+					this.redis = new RedisManager(this.client);
+				}
+ 			},
+			redis: {
+				dependency: 'redis',
+				init: () => {
+					const RedisManager = require('./redis-manager');
+					this.redis = new RedisManager(this.client);
+				}
+			}
+		};
+
+		return str;
+	}
+
 	/**
    * Initialize All the Strategies.
    * @param {string} client Name of the Client
@@ -24,7 +47,7 @@ class CacheManager {
 		/* if(this.client)
 			return; */
 
-		this.client = this.validClient(client);
+		this.client = this.validClientPrefix(client);
 
 		this.memory = null;
 		this.redis = null;
@@ -34,33 +57,39 @@ class CacheManager {
 		logger.info(`Cache Manager - Client: ${this.client}`);
 	}
 
-
 	/**
 	 *
 	 * @param {String} client name of client.
 	 * @returns {String} client name.
 	 */
-	validClient(client) {
-		if(typeof client === 'string')
-			return client;
-		return 'DEFAULT_CLIENT';
+	validClientPrefix(clientPrefix) {
+		if(typeof clientPrefix !== 'string')
+			throw new CacheManagerError('Invalid client-prefix.', CacheManagerError.codes.MISSING_PARAMETRES);
+		return clientPrefix;
+	}
+
+	get _memory() {
+		return this.use('memory');
+	}
+
+	get _redis() {
+		return this.use('redis');
 	}
 
 	use(strategy) {
 
 		if(this[strategy] === null) {
-
 			this.checkDependency(strategy);
 			this.initStrategy(strategy);
+		}
 
-			/* if(!this[strategy]) {
+		return this[strategy];
+
+		/* if(!this[strategy]) {
 				const MemoryManager = require('./memory-manager');
 				this[strategy] = new MemoryManager(this.client);
 				return this[strategy];
 			} */
-		}
-
-		return this[strategy];
 
 	}
 
@@ -71,11 +100,11 @@ class CacheManager {
    * @param {*} results Values to be saved
    */
 	save(entity, params, results) {
-		STRATEGIES.forEach(strategy => {
+		Object.keys(this.strategies).forEach(strategy => {
 			if(this.checkDependency(strategy)) {
 				if(this[strategy])
 					this[strategy].set(entity, params, results);
-				 else {
+				else {
 					this.initStrategy(strategy);
 					this[strategy].set(entity, params, results);
 				}
@@ -84,10 +113,16 @@ class CacheManager {
 	}
 
 	initStrategy(dependency) {
+
+		/* try {
+			this.strategies[dependency].init();
+		} catch(error) {
+			throw new Error('estrategia no implementada');
+		} */
+
 		console.log('-----INIT STRATEGY: ', dependency);
 		switch(dependency) {
 			case 'redis':
-				// eslint-disable-next-line no-case-declarations
 				const RedisManager = require('./redis-manager');
 				this.redis = new RedisManager(this.client);
 				break;
@@ -114,20 +149,27 @@ class CacheManager {
    * Fetched data,in the fastest strategy.
    * @param {string} entity Entity
    * @param {string} params Parametres
-   * @param {*} results Values
+   * @param {any} results Values
    */
 	async fetch(entity, params) {
 
 		let fetched;
 
-		for(const strategy of STRATEGIES) {
-			fetched = await this.use(strategy).get(entity, params);
+		const strs = Object.keys(this.strategies);
+
+		for(const strategy of strs) {
+			if(this[strategy] !== null) {
+				fetched = await this
+					.use(strategy)
+					.get(entity, params);
+			}
 
 			if(typeof fetched !== 'undefined' && fetched !== null) {
 				logger.info(`Cache - Found in ${strategy}`);
 
-				if(strategy !== 'memory')
+				if(strategy !== 'memory' && this.memory !== null)
 					this.use('memory').set(entity, params, fetched);
+
 				break;
 			}
 		}
@@ -196,8 +238,9 @@ class CacheManager {
    * @param {string} method Method to clean ('reset' or 'prune')
    */
 	async _cleanAll(method) {
-		STRATEGIES.forEach(async strategy => {
-			await this[strategy][method]();
+		Object.keys(this.strategies).forEach(async strategy => {
+			if(this[strategy] !== null)
+				await this[strategy][method]();
 		});
 	}
 
@@ -207,8 +250,9 @@ class CacheManager {
    * @param {string} method Method to clean ('reset')
    */
 	async cleanEntity(entity, method) {
-		STRATEGIES.forEach(async strategy => {
-			await this[strategy][method](entity);
+		Object.keys(this.strategies).forEach(async strategy => {
+			if(this[strategy] !== null)
+				await this[strategy][method](entity);
 		});
 	}
 }

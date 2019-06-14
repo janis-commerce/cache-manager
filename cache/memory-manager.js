@@ -6,7 +6,8 @@ const logger = require('@janiscommerce/logger');
 const CacheManagerError = require('./cache-manager-error');
 
 /**
- *	MemoryManager class -  */
+ *	MemoryManager class
+ */
 
 class MemoryManager {
 
@@ -24,23 +25,23 @@ class MemoryManager {
 
 	/**
 	 * Initialize a Memory Instances in order to be ready to use
-	 * @param {string} client Name of the Client
+	 * @param {string} client Name of the client-prefix
 	 */
-	constructor(client) {
+	constructor(clientPrefix) {
 		this.instances = {};
-		this.keyPrefix = this.validClient(client);
+		this.keyPrefix = this.validClientPrefix(clientPrefix);
 		logger.info(`Cache memory - Client: ${this.keyPrefix}`);
 	}
 
 	/**
 	 *
-	 * @param {String} client name of client.
-	 * @returns {String} client name.
+	 * @param {String} prefix name of prefix.
+	 * @returns {String} prefix name.
 	 */
-	validClient(client) {
-		if(typeof client === 'string')
-			return client;
-		return 'DEFAULT_CLIENT';
+	validClientPrefix(clientPrefix) {
+		if(typeof clientPrefix !== 'string')
+			throw new CacheManagerError('Invalid client-prefix.', CacheManagerError.codes.INVALID_PREFIX);
+		return clientPrefix;
 	}
 
 	/**

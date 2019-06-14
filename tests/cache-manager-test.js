@@ -7,7 +7,7 @@ const mockRequire = require('mock-require');
 // const redis = require('redis');
 const CacheManager = require('../index');
 
-describe('Cache Manager Test', () => {
+describe.only('Cache Manager Test', () => {
 
 	let cache;
 

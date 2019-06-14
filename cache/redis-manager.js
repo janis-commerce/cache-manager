@@ -1,3 +1,6 @@
+/* eslint-disable global-require */
+/* eslint-disable import/no-dynamic-require */
+
 'use strict';
 
 const { promisify } = require('util');
@@ -14,6 +17,29 @@ class RedisManager {
 
 	get MS() {
 		return process.env.MICROSERVICE || 'node';
+	}	
+
+	/**
+     * Get the Redis config
+     * @return {object}
+     */
+	get config() {
+		if(!this._config)
+			this.cacheConfig();
+
+		return this._config;
+	}
+
+	set keyPrefix(prefix) {
+		this._keyPrefix = prefix;
+	}
+
+	get keyPrefix() {
+		return this._keyPrefix;
+	}
+
+	getKey(key) {
+		return `${this.keyPrefix}${key}`;
 	}
 
 	/**
@@ -39,29 +65,6 @@ class RedisManager {
 		}
 
 		this._config = config;
-	}
-
-	/**
-     * Get the Redis config
-     * @return {object}
-     */
-	get config() {
-		if(!this._config)
-			this.cacheConfig();
-
-		return this._config;
-	}
-
-	set keyPrefix(prefix) {
-		this._keyPrefix = prefix;
-	}
-
-	get keyPrefix() {
-		return this._keyPrefix;
-	}
-
-	getKey(key) {
-		return `${this.keyPrefix}${key}`;
 	}
 
 	/**
