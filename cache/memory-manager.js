@@ -30,7 +30,8 @@ class MemoryManager {
 	constructor(clientPrefix) {
 		this.instances = {};
 		this.keyPrefix = this.validClientPrefix(clientPrefix);
-		logger.info(`Cache memory - Client: ${this.keyPrefix}`);
+		logger.info(`Cache memory - Client-Prefix: ${this.keyPrefix}`);
+		this.inited = false;
 	}
 
 	/**
@@ -77,7 +78,7 @@ class MemoryManager {
 				// Implement dispose function if we are saving in cache a value that needs to be close gracefully: File descriptor, database...
 			});
 		}
-
+		this.inited = true;
 		return this.instances[key];
 	}
 

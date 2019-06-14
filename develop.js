@@ -86,25 +86,34 @@ async function cacheAll() {
 
 async function cachepart() {
 	const ca = new CacheManager('prefix');
+	console.log(ca.client);
 
-	ca._memory.set('k1', 's1', { value: 'cas1' });
-	ca.save('k2', 's2', { value: 'cas2' });
-	ca.save('k2', 's3', { value: 'cas3' });
+	ca.redis.set('k1', 's1', { value: 'cas1' });
+	/* ca.save('k2', 's2', { value: 'cas2' });
+	ca.save('k2', 's3', { value: 'cas3' }); */
 
-	/* const res = await ca.fetch('k1', 's1');
-	console.log(res); */
+	const res = await ca.fetch('k1', 's1');
+	console.log(res);
 
-	// ca.memory.reset('k2');
-	const s1 = await ca.fetch('k1', 's1');
-	console.log(s1);
+	const res1 = await ca.memory.get('k1', 's1');
+	console.log(res1);
 
-	ca._memory.reset('k2')
+	// ca.redis.reset('k1');
 
-	const s2 = await ca.fetch('k2', 's2');
+	/* const s1 = await ca.fetch('k1', 's1');
+	console.log(s1); */
+
+	// ca.memory.reset('k1');
+	/* const s1 = await ca.fetch('k1', 's1');
+	console.log(s1); */
+
+	// ca._memory.reset('k2')
+
+	/* const s2 = await ca.fetch('k2', 's2');
 	console.log(s2);
 
 	const s3 = await ca.fetch('k2', 's3');
-	console.log(s3);
+	console.log(s3); */
 
 	/* const res1 = await ca.fetch('k1', 's1');
 	console.log(res1); */
@@ -113,8 +122,8 @@ cachepart();
 
 /* const strategies = {
 	memory: { dependency: 'lru-cache', hello: () => { console.log('hello memory'); } },
-	redis: { dependency: 'redis', hello: () => { console.log('hello redis'); } }
+	redis: { dependency: 'redis', hello: (name) => { console.log(name); } }
 }; */
 
 // Object.values(strategies()).forEach(strategy => console.log(strategy.className));
-// strategies.memory.hello();
+// strategies.redis.hello('fede');
