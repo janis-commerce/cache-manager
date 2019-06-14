@@ -50,9 +50,16 @@ describe.only('Cache Manager Test', () => {
 		assert.equal(cache.validClient('client'), 'client');
 	});*/
 
-	it(' should return the default client', () => {
+	it('strategies');
+	it('use');
+	it('initStrategy');
+	it('checkDependency');
+	it('getDependency');
+
+
+	/* it(' should return the default client', () => {
 		assert.equal(cache.validClient(1), 'DEFAULT_CLIENT');
-	}); 
+	});  */
 
 
 	it('should set and get', async() => {

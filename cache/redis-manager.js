@@ -87,7 +87,7 @@ class RedisManager {
 
 		this.keyPrefix = this.validClientPrefix(clientPrefix);
 		this.clients = [];
-		this.inited = null;
+		this.inited = false;
 
 		this.client = this.createClient();
 		this.promisify(this.client);
@@ -120,14 +120,14 @@ class RedisManager {
 		const client = this.clientRedis(defaults, options);
 
 		client.on('connect', () => {
-			logger.info(`Redis - Prefix: ${this.keyPrefix} | connected to ${host}:${port}`);
+			logger.info(`Redis - Client-Prefix: ${this.keyPrefix} | connected to ${host}:${port}`);
 			this.inited = true;
 		});
 
 		client.on('error', err => logger.error(err.message));
 
 		client.on('reconnecting', () => {
-			logger.warn(`Redis - Prefix: ${this.keyPrefix} | reconnecting`);
+			logger.warn(`Redis - Client-Prefix: ${this.keyPrefix} | reconnecting`);
 		});
 
 		this.clients.push(client); // for close latter
@@ -221,7 +221,7 @@ class RedisManager {
 	close() {
 		return Promise.all(this.clients.map(client => {
 			const promise = new Promise(resolve => {
-				client.on('end', () => logger.info(`Redis - Prefix: ${this.keyPrefix} | Server connection has closed`));
+				client.on('end', () => logger.info(`Redis - Client-Prefix: ${this.keyPrefix} | Server connection has closed`));
 				resolve();
 			});
 
