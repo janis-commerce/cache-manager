@@ -165,6 +165,8 @@ class RedisManager {
      *@param {*} value Results
      */
 	async set(key, subkey, value) {
+		console.log('guardando redis')
+
 		// If there are no data to save throws Error
 		if(!key || !subkey || !value)
 			throw new CacheManagerError('SET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
@@ -179,6 +181,8 @@ class RedisManager {
      * @param {params} subkey Parametres, will be encryptic
      */
 	async get(key, subkey) {
+		console.log('---- GET DESDE REDIS')
+
 		// If no data to search throws Error
 		if(!key || !subkey)
 			throw new CacheManagerError('GET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);

@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
+
 'use strict';
 
-const { RedisManager, MemoryManager, CacheManager } = require('./cache/');
+const { CacheManager } = require('./cache/');
 
 async function redisManager() {
 
@@ -46,4 +47,53 @@ async function redisManager() {
 	redis2.close(); */
 }
 
-redisManager();
+// redisManager();
+
+async function cachee() {
+	const cache = new CacheManager('test11');
+	// console.log(cache.isInit('_memory'));
+	cache.memory.set('r1', 'sk1', 'memo sk1');
+	// console.log(cache.isInit('_redis'));
+	// cache.save('dual', 'skdual', 'dual');
+	// cache.memory.set('m1', 'sk1', 'memory sk1');
+
+	/* const re = await cache.redis.get('dual', 'skdual');
+	const mem = await cache.memory.get('dual', 'skdual');
+
+	console.log(re);
+	console.log(mem); */
+
+	// await cache.memory.reset();
+	/* const res = await cache.fetch('r1', 'sk1');
+	console.log(res);
+	const res1 = await cache.redis.get('sk1', 'sk1');
+	console.log(res1); */
+	// console.log(cache.memory);
+}
+
+cachee();
+
+const STR = {
+	memory: {
+		dependency: 'lru-cache',
+		var: '_memory'
+	},
+	redis: {
+		dependency: 'redis',
+		var: '_redis'
+	}
+};
+
+function delKey(string) {
+	const s = string.substring(1);
+	return s;
+}
+
+/* Object.values(STR).forEach(str => console.log(str.var));
+console.log(STR.memory.var); */
+
+
+/* const val = Object.values(STR);
+for(const str of val) 
+	console.log(delKey(str.var));
+ */

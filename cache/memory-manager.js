@@ -111,7 +111,7 @@ class MemoryManager {
 	 * @returns {boolean} true if success.
 	 */
 	set(key, subkey, value) {
-
+		console.log('guardando memoria')
 		if(!key || !subkey || !value)
 			throw new CacheManagerError('SET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 		const newParams = this._prepareParams(subkey);
@@ -125,6 +125,7 @@ class MemoryManager {
 	 * @returns {*} Results, 'undefined' if not found
 	 */
 	async get(key, subkey) {
+		console.log('---- GET DESDE MEMORY')
 		if(!key || !subkey)
 			throw new CacheManagerError('GET - Missing parametres.', CacheManagerError.codes.MISSING_PARAMETRES);
 		return this.getInstance(key).get(this.getKey(key, this._prepareParams(subkey)));
