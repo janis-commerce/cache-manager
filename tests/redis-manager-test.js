@@ -8,11 +8,11 @@ const redisMock = require('redis-mock');
 const mockRequire = require('mock-require');
 
 mockRequire('redis', redisMock);
-const RedisManager = require('../cache/redis-manager');
-const { CacheManagerError } = require('../cache');
+const RedisManager = require('../lib/redis-manager');
+const { CacheManagerError } = require('../lib');
 
 
-describe.only('Redis Manager', function() {
+describe('Redis Manager', function() {
 
 	context('with mocks', () => {
 
@@ -43,33 +43,33 @@ describe.only('Redis Manager', function() {
 			assert.equal(newRedis.keyPrefix, 'tests');
 		});
 
-		it('should get and set data', async() => {
+		it('should get and set data', async () => {
 			newRedis.set('KEY', 'SUBKEY', { value: 'VALOR' });
 			const res = await newRedis.get('KEY', 'SUBKEY');
 			assert.deepEqual(res, { value: 'VALOR' });
 		});
 
-		it('should getting a value not set', async() => {
+		it('should getting a value not set', async () => {
 
 			const res = await newRedis.get('KEY1', 'SUBKEY1');
 			assert.equal(res, null);
 		});
 
-		it('should delete a key', async() => {
+		it('should delete a key', async () => {
 			newRedis.set('KEY', 'SUBKEY', 'VALOR');
 			await newRedis.reset('KEY');
 			const res = await newRedis.get('KEY', 'SUBKEY');
 			assert.equal(res, null);
 		});
 
-		it(' should reset all', async() => {
+		it(' should reset all', async () => {
 			newRedis.set('CLAVE', 'SUBCLAVE', 'VALOR');
 			newRedis.reset();
 			const res = await newRedis.get('CLAVE', 'SUBCLAVE');
 			assert.equal(res, null);
 		});
 
-		it('should detect the error when setting data wrong', async() => {
+		it('should detect the error when setting data wrong', async () => {
 			await assert.rejects(() => newRedis.get(),
 				{
 					name: 'CacheManagerError',
@@ -77,7 +77,7 @@ describe.only('Redis Manager', function() {
 				});
 		});
 
-		it('should catch the error when getting data wrong', async() => {
+		it('should catch the error when getting data wrong', async () => {
 			await assert.rejects(() => newRedis.set(),
 				{
 					name: 'CacheManagerError',
@@ -89,7 +89,10 @@ describe.only('Redis Manager', function() {
 			sandbox.stub(newRedis, 'configPath').get(() => {
 				return 'bad-path-config.json';
 			});
-			assert.throws(() => newRedis.cacheConfig());
+			assert.throws(() => newRedis.cacheConfig(), {
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.CONFIG_NOT_FOUND
+			});
 			sandbox.restore();
 		});
 

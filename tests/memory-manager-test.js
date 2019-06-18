@@ -3,11 +3,11 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
-const { CacheManagerError } = require('../cache');
-const MemoryManager = require('../cache/memory-manager');
+const { CacheManagerError } = require('../lib');
+const MemoryManager = require('../lib/memory-manager');
 
 
-describe.only('Memory Manager Tests', () => {
+describe('Memory Manager Tests', () => {
 
 	let memory;
 
@@ -23,18 +23,18 @@ describe.only('Memory Manager Tests', () => {
 		assert.throws(() => memory.validClientPrefix({ prefix: 'algo' }));
 	});
 
-	it('should set and get data', async() => {		
+	it('should set and get data', async () => {
 		memory.set('KEY', 'SUBKEY', { prop: 'tests' });
 		const res = await memory.get('KEY', 'SUBKEY');
 		assert.deepEqual(res, { prop: 'tests' });
 	});
 
-	it('should getting a value not set', async() => {
+	it('should getting a value not set', async () => {
 		const res = await memory.get('CLAVE', 'SK');
 		assert.equal(res, undefined);
 	});
 
-	it('should delete a key', async() => {
+	it('should delete a key', async () => {
 		memory.set('K1', 'SK1', 'VALOR-1');
 		await memory.reset('K1');
 		assert.deepEqual(memory.checkInstance('K1'), false);
@@ -47,7 +47,7 @@ describe.only('Memory Manager Tests', () => {
 		});
 	});
 
-	it('should catch the error when getting data wrong', async() => {
+	it('should catch the error when getting data wrong', async () => {
 		await assert.rejects(() => memory.get('key'),
 			{
 				name: 'CacheManagerError',
@@ -55,7 +55,7 @@ describe.only('Memory Manager Tests', () => {
 			});
 	});
 
-	it('should reset cache', async() => {
+	it('should reset cache', async () => {
 		memory.set('FIZZ', 'MOD', 'SOFT');
 		memory.set('K-FIZZ', 'SK-MOD', 'K-SOFT');
 		await memory.reset();
@@ -63,7 +63,7 @@ describe.only('Memory Manager Tests', () => {
 		assert.deepEqual(memory.checkInstance('K-FIZZ'), false);
 	});
 
-	it('should prune cache memory', async() => {
+	it('should prune cache memory', async () => {
 		const timer = sinon.useFakeTimers();
 		memory.set('prune11', 'sub-prune11', 'value prune11');
 		await memory.prune();
@@ -80,7 +80,7 @@ describe.only('Memory Manager Tests', () => {
 		assert.equal(memory.getInstanceKey('cl1'), 'Testcl1');
 	});
 
-	it('should delete key no set', async() => {
+	it('should delete key no set', async () => {
 		assert.equal(await memory.reset('some key'), undefined);
 	});
 
@@ -96,5 +96,5 @@ describe.only('Memory Manager Tests', () => {
 		const stub = sinon.stub(memory, 'instances').value({});
 		assert.equal(memory.resetAll(), null);
 		stub.restore();
-	})
+	});
 });

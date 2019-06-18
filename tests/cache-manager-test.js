@@ -2,95 +2,119 @@
 
 const assert = require('assert');
 const sandbox = require('sinon').createSandbox();
-const redisMock = require('redis-mock');
 const mockRequire = require('mock-require');
-// const redis = require('redis');
 const CacheManager = require('../index');
+const { CacheManagerError } = require('../lib');
 
-describe.only('Cache Manager Test', () => {
+describe('Cache Manager Test', () => {
 
 	let cache;
 
 
 	before(() => {
-		/* sandbox
-			.stub(redis, 'createClient')
-			.returns(redisMock.createClient());
-
-		const configs = {
-			hosty: 'localhost5',
-			porty: 63797
-		}; */
 		cache = new CacheManager('tests');
-		// mockRequire(cache.redis.configPath, configs);
-
-		/* const configs = {
-			host: 'localhost5',
-			port: 63797
-		};
-
-		mockRequire(CacheManager.redis.configPath, configs);
-		sandbox
-			.stub(redis, 'createClient')
-			.returns(redisMock.createClient());
-
-		CacheManager.initialize('Test');
-		CacheManager.redis.client.setMaxListeners(0); */
-
 	});
 
 	after(() => {
 		cache.reset();
 		cache.redis.close();
-		sandbox.restore();
-
 	});
 
-	/* it('should return the client entered', () => {
-		assert.equal(cache.validClient('client'), 'client');
-	});*/
+	context('data', () => {
+		it('should set and get', async () => {
+			cache.save('KEY', 'SUB', '{id: 1}');
+			const result = await cache.fetch('KEY', 'SUB');
+			assert.equal(result, '{id: 1}');
+		});
 
-	it('strategies');
-	it('use');
-	it('initStrategy');
-	it('checkDependency');
-	it('getDependency');
+		it('should get data from redis cache', async () => {
+			cache.save('k-1', 'sk-1', '{id: k-1}');
+			const result = await cache.redis.get('k-1', 'sk-1');
+			assert.equal(result, '{id: k-1}');
+		});
 
-
-	/* it(' should return the default client', () => {
-		assert.equal(cache.validClient(1), 'DEFAULT_CLIENT');
-	});  */
-
-
-	it('should set and get', async() => {
-		cache.save('KEY', 'SUB', '{id: 1}');
-		const result = await cache.fetch('KEY', 'SUB');
-		assert.equal(result, '{id: 1}');
+		it('should get data from memory cache', async () => {
+			cache.save('k-1', 'sk-1', '{id: k-1}');
+			const result = await cache.memory.get('k-1', 'sk-1');
+			assert.equal(result, '{id: k-1}');
+		});
 	});
 
-	
-	it('should get data in redis cache', async() => {
-		cache.save('k-1', 'sk-1', '{id: k-1}');
-		await cache.memory.reset('k-1');
-		const result = await cache.fetch('k-1', 'sk-1');
-		assert.equal(result, '{id: k-1}');
+	context('should reset data', () => {
+		it('should reset key in cache', async () => {
+			cache.save('k1', 'sk1', '{id: v1}');
+			await cache.reset('k1');
+			const result = await cache.fetch('k1', 'sk1');
+			assert.equal(result, null);
+		});
+
+		it('should reset all', async () => {
+			cache.save('entity', 'sub', 'reset all test ');
+			await cache.reset();
+			const res = await cache.fetch('entity', 'sub');
+			assert.equal(res, null);
+		});
 	});
 
-	it('should reset key in cache', async() => {
-		cache.save('k1', 'sk1', '{id: v1}');
-		await cache.reset('k1');
-		const result = await cache.fetch('k1', 'sk1');
-		assert.equal(result, null);
-	});
+	context('should throw error', () => {
 
-	/* it('should there can not be two instances', () => {
-		assert.equal(cache.initialize(), undefined);
-	}); */
+		it('should throw error in initStrategy not implemented', () => {
+			assert.throws(() => cache.initStrategy('other'), {
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.INVALID_STRATEGY
+			});
+		});
 
-	it('should reset all', async() => {
-		cache.save('entity', 'sub', 'reset all test ');
-		await cache.reset();
-		const res = await cache.fetch('entity', 'sub');
-		assert.equal(res, null);
+		it('should throw error when the redis module was not found', () => {
+			mockRequire('../lib/redis-manager.js', '../fake.route.js');
+			assert.throws(() => cache.initStrategy('redis'), {
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.MODULE_NOT_FOUND
+			});
+			mockRequire.stop('../lib/redis-manager.js');
+		});
+
+		it('should throw error when the memory module was not found', () => {
+			mockRequire('../lib/memory-manager.js', '../fake.route.js');
+			assert.throws(() => cache.initStrategy('memory'), {
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.MODULE_NOT_FOUND
+			});
+			mockRequire.stop('../lib/memory-manager.js');
+		});
+
+		it('should throw error when the strategy is not installed', () => {
+			assert.throws(() => cache.checkDependency('notDependency'), {
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.DEPENDENCY_NOT_FOUND
+			});
+		});
+
+		it('should throw error when the strategy is not initialized', async () => {
+			const c = new CacheManager('t1');
+			c.redis.set('f1', 'sk', 'f1');
+
+			await assert.rejects(() => c.fetch('f1', 'sk'), {
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.UNINITIALIZED_STRATEGY
+			});
+		});
+
+		it('should return a boolean false', () => {
+			const newCache = new CacheManager('c1');
+			const spy = sandbox.spy(newCache, 'initStrategy');
+			sandbox.stub(newCache, 'checkDependency').returns(false);
+
+			newCache.init('_redis');
+			assert.equal(spy.callCount, 0);
+			sandbox.restore();
+		});
+
+		it('should throw error for invalid client-prefix', () => {
+			assert.throws(() => cache.validClientPrefix(1), {
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.INVALID_PREFIX
+			});
+		});
 	});
 });

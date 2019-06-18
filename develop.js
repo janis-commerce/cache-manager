@@ -86,17 +86,22 @@ async function cacheAll() {
 
 async function cachepart() {
 	const ca = new CacheManager('prefix');
-	console.log(ca.client);
 
 	ca.redis.set('k1', 's1', { value: 'cas1' });
 	/* ca.save('k2', 's2', { value: 'cas2' });
 	ca.save('k2', 's3', { value: 'cas3' }); */
-
 	const res = await ca.fetch('k1', 's1');
 	console.log(res);
 
-	const res1 = await ca.memory.get('k1', 's1');
-	console.log(res1);
+	/* try {
+		const res = await ca.fetch('k1', 's1');
+		console.log(res);
+	} catch(error) {
+		console.log(error.message);
+	} */
+
+	/* const res1 = await ca.redis.get('k1', 's1');
+	console.log(res1); */
 
 	// ca.redis.reset('k1');
 
