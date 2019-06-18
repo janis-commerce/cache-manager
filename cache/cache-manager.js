@@ -1,19 +1,38 @@
+/* eslint-disable import/no-dynamic-require */
+/* eslint-disable global-require */
+
 'use strict';
 
 const logger = require('@janiscommerce/logger');
-const RedisManager = require('./redis-manager');
-const MemoryManager = require('./memory-manager');
+const path = require('path');
 
 const STRATEGIES = ['memory', 'redis'];
 
 const STR = {
 	memory: {
 		dependency: 'lru-cache',
-		var: '_memory'
+		var: '_memory',
+		init: client => {
+			try {
+				const MemoryManager = require('./memory-manager.js');
+				this._memory = new MemoryManager(client);
+			} catch(error) {
+				throw new Error(error.message);
+			}
+		}
 	},
 	redis: {
 		dependency: 'redis',
-		var: '_redis'
+		var: '_redis',
+		init: client => {
+			try {
+				const RedisManager = require('./redis-manager.js');
+				this._redis = new RedisManager(client);
+
+			} catch(error) {
+				throw new Error(error.message);
+			}
+		}
 	}
 };
 
@@ -27,10 +46,7 @@ class CacheManager {
 	}
 
 	get memory() {
-		if(this._memory === null) {
-			console.log('memoria en nulo, iniciando');
-			this._memory = new MemoryManager(this.client);
-		}
+		this.init('memory');
 		return this._memory;
 	}
 
@@ -39,16 +55,67 @@ class CacheManager {
 	}
 
 	get redis() {
-		if(this._redis === null) {
-			console.log('redis en nulo, iniciando');
-			this._redis = new RedisManager(this.client);
-		}
-
+		this.init('redis');
 		return this._redis;
+	}
+
+	init(strategy) {
+		if (this._redis === null) {
+			if (this.checkDependency(strategy))
+				this.initStrategy(strategy);
+		}
 	}
 
 	set redis(red) {
 		this._redis = red;
+	}
+
+	initStrategy(dependency) {
+		console.log(STR[dependency].var);
+
+		/* try {
+			STR[dependency].init(this.client);
+		} catch(error) {
+			throw new Error(`estrategia no implementada ${dependency}`);
+		} */
+
+		console.log('-----INIT STRATEGY: ', dependency);
+		switch(dependency) {
+			case 'redis': {
+				try {
+					const RedisManager = require('./redis-manager');
+					this._redis = new RedisManager(this.client);
+					break;
+				} catch(error) {
+					throw new Error(error);
+				}
+			}
+			case 'memory': {
+				try {
+					const MemoryManager = require('./memory-manager');
+					this._memory = new MemoryManager(this.client);
+					break;
+				} catch(error) {
+					throw new Error(error);
+				}
+
+			}
+			default:
+				throw new Error('estrategia no implementada');
+		}
+	}
+
+	checkDependency(strategy) {
+		try {
+			return !!require(path.join(process.cwd(), 'node_modules', this.getDependency(strategy)));
+		} catch(err) {
+			throw new Error(`estrategia no instalada: ${this.getDependency(strategy)}`);
+		}
+	}
+
+	getDependency(strategy) {
+		const str = STR[strategy].dependency;
+		return str;
 	}
 
 
@@ -57,17 +124,10 @@ class CacheManager {
    * @param {string} client Name of the Client
    */
 	constructor(client) {
-		/* if(this.client)
-			return; */
-
 		this.client = this.validClient(client);
-
 		this.memory = null;
 		this.redis = null;
 		logger.info(`Cache - cliente prefix: ${this.client}`);
-		// Clean before start using.
-		/* MemoryManager.reset();
-		RedisManager.reset(); */
 	}
 
 	/**
@@ -80,21 +140,6 @@ class CacheManager {
 			return client;
 		return 'DEFAULT_CLIENT';
 	}
-
-	/**
-   * Returns Memory Manager. Needs to be intialized.
-   */
-	/* get memory() {
-		return this.memory;
-	} */
-
-	/**
-   * Returns Redis Manager. Needs to be intialized.
-   */
-	/* get redis() {
-		return this.redis;
-	} */
-
 
 	/**
    * Save date All strategies.
@@ -130,19 +175,21 @@ class CacheManager {
 		let fetched;
 		const strs = Object.values(STR);
 
-		for(const strategy of strs)
-			/* const variable = strategy.var;
-			console.log(variable); */
-			// const varP = strategy.var;
+		for(const strategy of strs) {
 			if(this[strategy.var] === null) {
-				console.log(`${strategy.var} sin iniciar`)
-				throw new Error(`${this.delKey(strategy.var)} no iniciada`);
-			}else{
-				console.log(`${strategy.var} iniciada`)
-				fetched = await this[this.delKey(strategy.var)].get(entity, params)
+				console.log(`${strategy.var} sin iniciar`);
+				throw new Error(`Estrategia ${this.delKey(strategy.var)} no iniciada`);
+			}
+			fetched = await this[this.delKey(strategy.var)].get(entity, params);
+
+			if(typeof fetched !== 'undefined' && fetched !== null) {
+				logger.info(`Cache - Found in ${strategy}`);
 				break;
 			}
-			
+		}
+
+		return fetched;
+
 
 		// console.log(`${strategy} sin iniciar`)
 		/* if(this[strategy] !== null && this[strategy].inited)
@@ -159,8 +206,6 @@ class CacheManager {
 				break;
 			} */
 
-
-		return fetched;
 
 		// Search in Memory (LRU) first
 		/* let fetched = await this.memory.get(entity, params);
@@ -210,7 +255,8 @@ class CacheManager {
    * @param {string} method Method to clean ('reset' or 'prune')
    */
 	async _cleanAll(method) {
-		STRATEGIES.forEach(async strategy => {
+		const strategies = Object.keys(STR)
+		strategies.forEach(async strategy => {
 			await this[strategy][method]();
 		});
 	}
@@ -221,7 +267,8 @@ class CacheManager {
    * @param {string} method Method to clean ('reset')
    */
 	async cleanEntity(entity, method) {
-		STRATEGIES.forEach(async strategy => {
+		const strategies = Object.keys(STR)
+		strategies.forEach(async strategy => {
 			await this[strategy][method](entity);
 		});
 	}

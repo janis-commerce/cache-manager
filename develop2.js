@@ -52,21 +52,24 @@ async function redisManager() {
 async function cachee() {
 	const cache = new CacheManager('test11');
 	// console.log(cache.isInit('_memory'));
-	cache.memory.set('r1', 'sk1', 'memo sk1');
+	cache.save('r111', 'sk111', 'memo sk11');
+	cache.save('r2', 'sk2', 'memo sk2');
 	// console.log(cache.isInit('_redis'));
 	// cache.save('dual', 'skdual', 'dual');
 	// cache.memory.set('m1', 'sk1', 'memory sk1');
+	await cache.reset()
+	// const re = await cache.redis.get('dual', 'skdual');
+	const mem = await cache.fetch('r111', 'sk111');
+	const mem1 = await cache.fetch('r2', 'sk2');
 
-	/* const re = await cache.redis.get('dual', 'skdual');
-	const mem = await cache.memory.get('dual', 'skdual');
-
-	console.log(re);
-	console.log(mem); */
+	// console.log(re);
+	console.log(mem);
+	console.log(mem1);
 
 	// await cache.memory.reset();
-	/* const res = await cache.fetch('r1', 'sk1');
-	console.log(res);
-	const res1 = await cache.redis.get('sk1', 'sk1');
+	/* /* const res = await cache.fetch('r1', 'sk1');
+	console.log(res); */
+	/* const res1 = await cache.redis.get('r111', 'sk111');
 	console.log(res1); */
 	// console.log(cache.memory);
 }
