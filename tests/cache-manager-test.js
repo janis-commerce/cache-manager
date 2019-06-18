@@ -10,7 +10,6 @@ describe('Cache Manager Test', () => {
 
 	let cache;
 
-
 	before(() => {
 		cache = new CacheManager('tests');
 	});
@@ -20,7 +19,7 @@ describe('Cache Manager Test', () => {
 		cache.redis.close();
 	});
 
-	context('data', () => {
+	context('manipulating data', () => {
 		it('should set and get', async () => {
 			cache.save('KEY', 'SUB', '{id: 1}');
 			const result = await cache.fetch('KEY', 'SUB');

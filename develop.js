@@ -4,7 +4,6 @@
 'use strict';
 
 const path = require('path');
-
 const CacheManager = require('./index');
 
 async function cacheStrategy() {
@@ -87,11 +86,15 @@ async function cacheAll() {
 async function cachepart() {
 	const ca = new CacheManager('prefix');
 
-	ca.redis.set('k1', 's1', { value: 'cas1' });
+	ca.save('k1', 's1', { value: 'cas1' });
 	/* ca.save('k2', 's2', { value: 'cas2' });
 	ca.save('k2', 's3', { value: 'cas3' }); */
+	// ca.memory.reset();
 	const res = await ca.fetch('k1', 's1');
 	console.log(res);
+
+	const res1 = await ca.fetch('k1', 's1');
+	console.log(res1);
 
 	/* try {
 		const res = await ca.fetch('k1', 's1');
