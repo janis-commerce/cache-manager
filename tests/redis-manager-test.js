@@ -24,12 +24,6 @@ describe('Redis Manager', function() {
 		let newRedis;
 
 		before(() => {
-
-			const configs = {
-				hosty: 'localhost5',
-				porty: 63797
-			};
-
 			newRedis = new RedisManager('tests');
 		});
 
