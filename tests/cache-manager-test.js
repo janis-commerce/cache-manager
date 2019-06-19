@@ -3,6 +3,11 @@
 const assert = require('assert');
 const sandbox = require('sinon').createSandbox();
 const mockRequire = require('mock-require');
+
+/* const memoryMock = require('../lib/mocks/lru-cache-mock');
+
+mockRequire('LRU', memoryMock);
+const MemoryManager = require('../lib/memory-manager'); */
 const CacheManager = require('../index');
 const { CacheManagerError } = require('../lib');
 
@@ -21,9 +26,12 @@ describe('Cache Manager Test', () => {
 
 	context('manipulating data', () => {
 		it('should set and get', async () => {
+			sandbox.stub(cache, 'checkDependency').returns(true);
+
 			cache.save('KEY', 'SUB', '{id: 1}');
 			const result = await cache.fetch('KEY', 'SUB');
 			assert.equal(result, '{id: 1}');
+			sandbox.restore();
 		});
 
 		it('should get data from redis cache', async () => {
@@ -36,6 +44,14 @@ describe('Cache Manager Test', () => {
 			cache.save('k-1', 'sk-1', '{id: k-1}');
 			const result = await cache.memory.get('k-1', 'sk-1');
 			assert.equal(result, '{id: k-1}');
+		});
+
+		it('should set data in memory', async () => {
+			cache.save('ff1', 'fsk1', 'memory');
+			cache.memory.reset();
+			await cache.fetch('ff1', 'fsk1');
+			const res = await cache.memory.get('ff1', 'fsk1');
+			assert.equal(res, 'memory');
 		});
 	});
 
@@ -91,12 +107,13 @@ describe('Cache Manager Test', () => {
 
 		it('should throw error when the strategy is not initialized', async () => {
 			const c = new CacheManager('t1');
+			sandbox.stub(c, 'checkDependency').returns(true);
 			c.redis.set('f1', 'sk', 'f1');
-
 			await assert.rejects(() => c.fetch('f1', 'sk'), {
 				name: 'CacheManagerError',
 				code: CacheManagerError.codes.UNINITIALIZED_STRATEGY
 			});
+			sandbox.restore();
 		});
 
 		it('should return a boolean false', () => {

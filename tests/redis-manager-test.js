@@ -2,12 +2,17 @@
 
 'use strict';
 
+const path = require('path');
 const assert = require('assert');
 const sandbox = require('sinon').createSandbox();
 const redisMock = require('redis-mock');
 const mockRequire = require('mock-require');
 
 mockRequire('redis', redisMock);
+mockRequire(path.join(process.cwd(), 'config/redis.json'), {
+	host: 'localhost',
+	port: 6739
+});
 const RedisManager = require('../lib/redis-manager');
 const { CacheManagerError } = require('../lib');
 
@@ -26,7 +31,6 @@ describe('Redis Manager', function() {
 			};
 
 			newRedis = new RedisManager('tests');
-			mockRequire(newRedis.configPath, configs);
 		});
 
 		after(() => {

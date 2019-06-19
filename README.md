@@ -31,7 +31,7 @@ The expected object in config.json should be:
 const CacheManager = require('@janiscommerce/cache-manager')
 
 // initialize cache manager
-CacheManager.initialize('Client');
+const cacheManager = new CacheManager('client-prefix');
 ```
 
 ### How to save data?
@@ -39,12 +39,12 @@ CacheManager.initialize('Client');
 ```js
 
 // save in all cache strategies
-CacheManager.save('key', 'subkey', { message: 'hello friend' })
+cacheManager.save('key', 'subkey', { message: 'hello friend' })
 ```
 ### How to fetch data?
 ```js
 // fetched data in the fastest first strategy and then in the rest
-const data = await CacheManager.fetch('key', 'subkey')
+const data = await cacheManager.fetch('key', 'subkey')
 console.log(data) // '{ message: 'hello friend' }
 
 ```
@@ -52,37 +52,32 @@ console.log(data) // '{ message: 'hello friend' }
 ### How to reset cache?
 ```js
 // reset all entities in all strategies
-await CacheManager.reset();
+await cacheManager.reset();
 
 // reset only a specific entity in all strategies
-await CacheManager.resetEntity('key');
+await cacheManager.reset('key');
 ```
 
 ## API 
-- `initialize('client-prefix')`
-Initialize the cache manager. Receives as a parameter a client [string] to be able to use it as a prefix.
 - `save('key', 'subkey', 'some value')`
 Save data in memory and redis. Receives a key [string], a subkey [string] and value to save.
 - `fetched('key', 'subkey')`
 Fetched data in the fastest strategy. Receives the key [string] and subkey [string] as parameter with which the value was saved. Returns a promise. In case of not found a value returns null
 - `reset()`
 Delete all entities in cache
-- `resetEntity('key')`
+- `reset('key')`
 Delete a especific entity in cache. Receives the key [string] of the entity to be deleted
 
 You can also use redis or memory independently as follows
 ```js
 // memory
-CacheManager.memory.[method]
+cacheManager.memory.[method]
 
 // redis
-CacheManager.redis.[method]
+cacheManager.redis.[method]
 ```
 
 #### API memory
-
-- `initialize('client-prefix')`
-Initialize the memory manager if you did not previously with the cache manager initializer. Receives as a parameter a client [string] to be able to use it as a prefix
 
 - `set('key', 'subkey', 'some value')`
 Save data. Receives a key [string], a subkey [string] and value to save.
@@ -102,36 +97,33 @@ Pruning old entries
 
 #### Usage example
 ```js
-CacheManager.memory.initialize('client memory')
 
 // set data
-CacheManager.memory.set('mem', 'subkey', { cache: 'memory' })
-CacheManager.memory.set('keymem', 'submem', 'memory value')
+cacheManager.memory.set('mem', 'subkey', { cache: 'memory' })
+cacheManager.memory.set('keymem', 'submem', 'memory value')
 
 // get data
-const mem = await CacheManager.memory.get('mem', 'subkey')
+const mem = await cacheManager.memory.get('mem', 'subkey')
 console.log(mem) // { cache: 'memory' }
 
 // delete key mem 
-await CacheManager.memory.reset('mem')
+await cacheManager.memory.reset('mem')
 
 // get data from the deleted key
-const memDelete = await CacheManager.memory.get('mem', 'subkey')
+const memDelete = await cacheManager.memory.get('mem', 'subkey')
 console.log(memDelete) // undefined
 
 // delete all keys
-await CacheManager.memory.reset()
+await cacheManager.memory.reset()
 
 // get data from the deleted key
-const keymem = await CacheManager.memory.get('keymem', 'submem')
+const keymem = await cacheManager.memory.get('keymem', 'submem')
 console.log(keymem) // undefined
 
 ```
 
 
 #### API redis
-- `initialize('client-prefix)`
-Initialize the redis manager if you did not previously with the cache manager initializer. Receives as a parameter a client [string] to be able to use it as a prefix
 
 - `set('key', 'subkey', 'some value')`
 Save data. Receives a key [string], a subkey [string] and value to save.
@@ -150,32 +142,31 @@ Close connection
 
 #### Usage example
 ```js
-CacheManager.redis.initialize('client redis');
 
 // save data
-CacheManager.redis.set('red', 'subkey', { cache: 'redis' });
-CacheManager.redis.set('red-2', 'sub-2', 'redis-2');
+cacheManager.redis.set('red', 'subkey', { cache: 'redis' });
+cacheManager.redis.set('red-2', 'sub-2', 'redis-2');
 
 // get data
-const data = CacheManager.redis.get('red', 'subkey')
+const data = cacheManager.redis.get('red', 'subkey')
 console.log(data); // { cache: 'redis' }
 
 
 // delete key red-2
-await CacheManager.redis.reset('red-2');
+await cacheManager.redis.reset('red-2');
 
 // get data from the deleted key
-const del = await CacheManager.redis.get('red-2', 'sub-2');
+const del = await cacheManager.redis.get('red-2', 'sub-2');
 console.log(del); // null
 
 // delete all keys
-await CacheManager.redis.reset();
+await cacheManager.redis.reset();
 
 // get data from the deleted key
-const red = await CacheManager.redis.get('red', 'subkey');
+const red = await cacheManager.redis.get('red', 'subkey');
 console.log(red); // null
 
 // close connection
-CacheManager.redis.close();
+cacheManager.redis.close();
 ```
 

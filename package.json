@@ -35,9 +35,7 @@
   "dependencies": {
     "@janiscommerce/logger": "^1.1.0",
     "async": "^3.0.0",
-    "lru-cache": "^5.1.1",
-    "md5": "^2.2.1",
-    "redis": "^2.8.0"
+    "md5": "^2.2.1"
   },
   "files": [
     "lib/"
