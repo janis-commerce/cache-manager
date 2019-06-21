@@ -3,7 +3,7 @@
 const assert = require('assert');
 const sinon = require('sinon');
 const mockRequire = require('mock-require');
-const memoryMock = require('../lib/mocks/lru-cache-mock');
+const memoryMock = require('../mocks/lru-cache-mock');
 
 mockRequire('lru-cache', memoryMock);
 const MemoryManager = require('../lib/memory-manager');
@@ -39,14 +39,14 @@ describe('Memory Manager Tests', () => {
 		});
 
 		it('invalid client-prefix', () => {
-			assert.throws(() => memory.validClientPrefix({ prefix: 'algo' }), {
+			assert.throws(() => memory.validateClientPrefix({ prefix: 'algo' }), {
 				name: 'CacheManagerError',
 				code: CacheManagerError.codes.INVALID_PREFIX
 			});
 		});
 	});
 
-	context('manipulating data', () => {
+	context('when manipulating data', () => {
 
 		it('should set and get data', async () => {
 			memory.set('KEY', 'SUBKEY', { prop: 'tests' });

@@ -3,11 +3,6 @@
 const assert = require('assert');
 const sandbox = require('sinon').createSandbox();
 const mockRequire = require('mock-require');
-
-/* const memoryMock = require('../lib/mocks/lru-cache-mock');
-
-mockRequire('LRU', memoryMock);
-const MemoryManager = require('../lib/memory-manager'); */
 const CacheManager = require('../index');
 const { CacheManagerError } = require('../lib');
 
@@ -24,7 +19,7 @@ describe('Cache Manager Test', () => {
 		cache.redis.close();
 	});
 
-	context('manipulating data', () => {
+	context('when manipulating data', () => {
 		it('should set and get', async () => {
 			sandbox.stub(cache, 'checkDependency').returns(true);
 
@@ -127,7 +122,7 @@ describe('Cache Manager Test', () => {
 		});
 
 		it('should throw error for invalid client-prefix', () => {
-			assert.throws(() => cache.validClientPrefix(1), {
+			assert.throws(() => cache.validateClientPrefix(1), {
 				name: 'CacheManagerError',
 				code: CacheManagerError.codes.INVALID_PREFIX
 			});

@@ -11,7 +11,7 @@ const mockRequire = require('mock-require');
 mockRequire('redis', redisMock);
 mockRequire(path.join(process.cwd(), 'config/redis.json'), {
 	host: 'localhost',
-	port: 6739
+	port: 6379
 });
 const RedisManager = require('../lib/redis-manager');
 const { CacheManagerError } = require('../lib');
@@ -35,7 +35,7 @@ describe('Redis Manager', function() {
 		context('should throws error', () => {
 
 			it('should throw error for invalid client-prefix', () => {
-				assert.throws(() => newRedis.validClientPrefix(1), {
+				assert.throws(() => newRedis.validateClientPrefix(1), {
 					name: 'CacheManagerError',
 					code: CacheManagerError.codes.INVALID_PREFIX
 				});
@@ -61,7 +61,7 @@ describe('Redis Manager', function() {
 				sandbox.stub(newRedis, 'configPath').get(() => {
 					return 'bad-path-config.json';
 				});
-				assert.throws(() => newRedis.cacheConfig(), {
+				assert.throws(() => newRedis.setConfig(), {
 					name: 'CacheManagerError',
 					code: CacheManagerError.codes.CONFIG_NOT_FOUND
 				});
@@ -69,7 +69,7 @@ describe('Redis Manager', function() {
 			});
 		});
 
-		context('manipulating data', () => {
+		context('when manipulating data', () => {
 
 			it('should get and set data', async () => {
 				newRedis.set('KEY', 'SUBKEY', { value: 'VALOR' });
@@ -97,7 +97,7 @@ describe('Redis Manager', function() {
 					return { nohost: 'fakehost', noport: 1234 };
 				});
 
-				assert.deepEqual(newRedis.configServer(), { host: 'localhost', port: 6739 });
+				assert.deepEqual(newRedis.configServer(), { host: 'localhost', port: 6379 });
 			});
 		});
 

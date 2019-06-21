@@ -61,7 +61,7 @@ await cacheManager.reset('key');
 ## API 
 - `save('key', 'subkey', 'some value')`
 Save data in memory and redis. Receives a key [string], a subkey [string] and value to save.
-- `fetched('key', 'subkey')`
+- `fetch('key', 'subkey')`
 Fetched data in the fastest strategy. Receives the key [string] and subkey [string] as parameter with which the value was saved. Returns a promise. In case of not found a value returns null
 - `reset()`
 Delete all entities in cache
