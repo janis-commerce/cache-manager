@@ -8,7 +8,7 @@ const sandbox = require('sinon').createSandbox();
 const redisMock = require('redis-mock');
 const mockRequire = require('mock-require');
 
-mockRequire('redis', redisMock);
+mockRequire(path.join(process.cwd(), 'node_modules', 'redis'), redisMock);
 mockRequire(path.join(process.cwd(), 'config/redis.json'), {
 	host: 'localhost',
 	port: 6379

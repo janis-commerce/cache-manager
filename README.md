@@ -14,6 +14,13 @@ The cache-manager is a module for the management of cache, where data is stored 
 npm install @janiscommerce/cache-manager
 ```
 
+
+To be able to use the two caching strategies implemented, you must install the following dependencies in the root of your application
+```js
+npm install redis 
+npm install lru-cache 
+```
+
 In order to work, the package needs a configuration file at the root of the application specifying the port and the host it uses for its redis server.
 ```js
 path/to/root/config/redis.json
@@ -60,12 +67,12 @@ await cacheManager.reset('key');
 
 ## API 
 - `save('key', 'subkey', 'some value')`
-Save data in memory and redis. Receives a key [string], a subkey [string] and value to save.
-- `fetch('key', 'subkey')`
+Save data in memory and redis. Receives a key [string], a subkey [string] and value [any] to save.
+- `async fetch('key', 'subkey')`
 Fetched data in the fastest strategy. Receives the key [string] and subkey [string] as parameter with which the value was saved. Returns a promise. In case of not found a value returns null
-- `reset()`
+- `async reset()`
 Delete all entities in cache
-- `reset('key')`
+- `async reset('key')`
 Delete a especific entity in cache. Receives the key [string] of the entity to be deleted
 
 You can also use redis or memory independently as follows
@@ -80,15 +87,15 @@ cacheManager.redis.[method]
 #### API memory
 
 - `set('key', 'subkey', 'some value')`
-Save data. Receives a key [string], a subkey [string] and value to save.
+Save data. Receives a key [string], a subkey [string] and value [any] to save.
 
-- `get('key', 'subkey')`
+- `async get('key', 'subkey')`
 Fetched data. Receives the key [string] and subkey [string] as parameter with which the value was saved. Returns a promise. In case of not found a value returns undefined
 
-- `reset()`
+- `async reset()`
 Delete all entities
 
-- `reset('key')`
+- `async reset('key')`
 Delete a especific entity. Receives the key [string] of the entity to be deleted
 
 - `prune()`
@@ -126,18 +133,18 @@ console.log(keymem) // undefined
 #### API redis
 
 - `set('key', 'subkey', 'some value')`
-Save data. Receives a key [string], a subkey [string] and value to save.
+Save data. Receives a key [string], a subkey [string] and value [any] to save.
 
-- `get('key', 'subkey')`
+- `async get('key', 'subkey')`
 Fetched data in the fastest strategy. Receives the key [string] and subkey [string] as parameter with which the value was saved. Returns a promise. In case of not found a value returns null
 
-- `reset()`
+- `async reset()`
 Delete all entities in cache
 
-- `reset('key')`
+- `async reset('key')`
 Delete a especific entity in cache. Receives the key [string] of the entity to be deleted
 
-- `close()`
+- `async close()`
 Close connection
 
 #### Usage example

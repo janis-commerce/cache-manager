@@ -2,10 +2,11 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
+const path = require('path');
 const mockRequire = require('mock-require');
 const memoryMock = require('../mocks/lru-cache-mock');
 
-mockRequire('lru-cache', memoryMock);
+mockRequire(path.join(process.cwd(), 'node_modules', 'lru-cache'), memoryMock);
 const MemoryManager = require('../lib/memory-manager');
 const { CacheManagerError } = require('../lib');
 
