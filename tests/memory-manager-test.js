@@ -23,7 +23,7 @@ describe('Memory Manager Tests', () => {
 		memory.reset();
 	});
 
-	context('should throw erros', () => {
+	context('when should throw erros', () => {
 		it('should detect the error when setting data wrong', () => {
 			assert.throws(() => memory.set('only key'), {
 				name: 'CacheManagerError',
@@ -39,7 +39,7 @@ describe('Memory Manager Tests', () => {
 				});
 		});
 
-		it('invalid client-prefix', () => {
+		it('should invalid client-prefix', () => {
 			assert.throws(() => memory.validateClientPrefix({ prefix: 'algo' }), {
 				name: 'CacheManagerError',
 				code: CacheManagerError.codes.INVALID_PREFIX
@@ -74,7 +74,7 @@ describe('Memory Manager Tests', () => {
 		});
 	});
 
-	context('should reset data', () => {
+	context('when should reset data', () => {
 
 		it('should delete a key', async () => {
 			memory.set('K1', 'SK1', 'VALOR-1');

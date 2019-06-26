@@ -19,7 +19,7 @@ const { CacheManagerError } = require('../lib');
 
 describe('Redis Manager', function() {
 
-	context('with mocks', () => {
+	context('when use mocks', () => {
 
 		let newRedis;
 
@@ -42,7 +42,7 @@ describe('Redis Manager', function() {
 			});
 
 			it('should throw error when setting data wrong', async () => {
-				await assert.rejects(() => newRedis.get(),
+				await assert.rejects(newRedis.get(),
 					{
 						name: 'CacheManagerError',
 						code: CacheManagerError.codes.MISSING_PARAMETRES
@@ -50,7 +50,7 @@ describe('Redis Manager', function() {
 			});
 
 			it('should throw error when getting data wrong', async () => {
-				await assert.rejects(() => newRedis.set(),
+				await assert.rejects(newRedis.set(),
 					{
 						name: 'CacheManagerError',
 						code: CacheManagerError.codes.MISSING_PARAMETRES

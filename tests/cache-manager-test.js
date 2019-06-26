@@ -50,7 +50,7 @@ describe('Cache Manager Test', () => {
 		});
 	});
 
-	context('should reset data', () => {
+	context('when should reset data', () => {
 		it('should reset key in cache', async () => {
 			cache.save('k1', 'sk1', '{id: v1}');
 			await cache.reset('k1');
@@ -66,7 +66,7 @@ describe('Cache Manager Test', () => {
 		});
 	});
 
-	context('should throw error', () => {
+	context('when should throw error', () => {
 
 		it('should throw error in initStrategy not implemented', () => {
 			assert.throws(() => cache.initStrategy('other'), {
