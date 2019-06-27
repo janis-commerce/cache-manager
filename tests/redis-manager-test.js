@@ -34,6 +34,53 @@ describe('Redis Manager', function() {
 
 		context('should throws error', () => {
 
+
+			it('RESET ENTITY', async () => {
+				sandbox.stub(newRedis.client, 'del').rejects();
+
+				await assert.rejects(newRedis._resetEntity('h'), {
+					name: 'CacheManagerError',
+					code: CacheManagerError.codes.REDIS_ERROR
+				});
+
+
+				sandbox.restore();
+			});
+
+			it('RESET ALL', async () => {
+				sandbox.stub(newRedis.client, 'flushall').rejects();
+
+				await assert.rejects(newRedis._resetAll(), {
+					name: 'CacheManagerError',
+					code: CacheManagerError.codes.REDIS_ERROR
+				});
+
+
+				sandbox.restore();
+			});
+
+			it('HSET', async () => {
+
+				sandbox.stub(newRedis.client, 'hset').rejects('Error');
+
+				await assert.rejects(newRedis.set('fede', 'sk', 'value'), {
+					name: 'CacheManagerError',
+					code: CacheManagerError.codes.REDIS_ERROR
+				});
+
+				sandbox.restore();
+			});
+
+			it('HGET', async () => {
+				sandbox.stub(newRedis.client, 'hget').rejects('Error');
+
+				await assert.rejects(newRedis.get('k', 'sk'), {
+					name: 'CacheManagerError',
+					code: CacheManagerError.codes.REDIS_ERROR
+				});
+				sandbox.restore();
+			});
+
 			it('should throw error for invalid client-prefix', () => {
 				assert.throws(() => newRedis.validateClientPrefix(1), {
 					name: 'CacheManagerError',
@@ -134,5 +181,18 @@ describe('Redis Manager', function() {
 				sandbox.restore();
 			});
 		});
+	});
+
+	context('errors await', () => {
+		/* it('set', async () => {
+
+			const red = new RedisManager('f');
+			red.close();
+
+			await assert.rejects(red.set('k', 'sk', () => console.log('REJECTS!!')), {
+				name: 'CacheManagerError',
+				code: CacheManagerError.codes.REDIS_ERROR
+			});
+		}); */
 	});
 });
