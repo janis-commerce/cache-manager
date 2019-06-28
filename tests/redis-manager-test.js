@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable prefer-arrow-callback */
 
 'use strict';
@@ -35,45 +36,35 @@ describe('Redis Manager', function() {
 		context('should throws error', () => {
 
 
-			it('RESET ENTITY', async () => {
+			it('should throw an error when the redis del method fails', async () => {
 				sandbox.stub(newRedis.client, 'del').rejects();
-
 				await assert.rejects(newRedis._resetEntity('h'), {
 					name: 'CacheManagerError',
 					code: CacheManagerError.codes.REDIS_ERROR
 				});
-
-
 				sandbox.restore();
 			});
 
-			it('RESET ALL', async () => {
+			it('should throw an error when the redis flushall method fails', async () => {
 				sandbox.stub(newRedis.client, 'flushall').rejects();
-
 				await assert.rejects(newRedis._resetAll(), {
 					name: 'CacheManagerError',
 					code: CacheManagerError.codes.REDIS_ERROR
 				});
-
-
 				sandbox.restore();
 			});
 
-			it('HSET', async () => {
-
+			it('should throw an error when the redis hset method fails', async () => {
 				sandbox.stub(newRedis.client, 'hset').rejects('Error');
-
 				await assert.rejects(newRedis.set('fede', 'sk', 'value'), {
 					name: 'CacheManagerError',
 					code: CacheManagerError.codes.REDIS_ERROR
 				});
-
 				sandbox.restore();
 			});
 
-			it('HGET', async () => {
+			it('should throw an error when the redis hget method fails', async () => {
 				sandbox.stub(newRedis.client, 'hget').rejects('Error');
-
 				await assert.rejects(newRedis.get('k', 'sk'), {
 					name: 'CacheManagerError',
 					code: CacheManagerError.codes.REDIS_ERROR
@@ -136,7 +127,6 @@ describe('Redis Manager', function() {
 
 				assert.deepEqual(newRedis.configServer(), { host: 'fakehost', port: 1234 });
 				sandbox.restore();
-
 			});
 
 			it('should take the values ​​by default', () => {
@@ -181,18 +171,5 @@ describe('Redis Manager', function() {
 				sandbox.restore();
 			});
 		});
-	});
-
-	context('errors await', () => {
-		/* it('set', async () => {
-
-			const red = new RedisManager('f');
-			red.close();
-
-			await assert.rejects(red.set('k', 'sk', () => console.log('REJECTS!!')), {
-				name: 'CacheManagerError',
-				code: CacheManagerError.codes.REDIS_ERROR
-			});
-		}); */
 	});
 });

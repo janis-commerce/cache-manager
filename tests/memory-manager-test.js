@@ -24,8 +24,8 @@ describe('Memory Manager Tests', () => {
 	});
 
 	context('when should throw erros', () => {
-		it('should detect the error when setting data wrong', () => {
-			assert.throws(() => memory.set('only key'), {
+		it('should detect the error when setting data wrong', async () => {
+			await assert.rejects(memory.set('only key'), {
 				name: 'CacheManagerError',
 				code: CacheManagerError.codes.MISSING_PARAMETRES
 			});
