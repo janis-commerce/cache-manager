@@ -17,7 +17,6 @@ mockRequire(path.join(process.cwd(), 'config/redis.json'), {
 const RedisManager = require('../lib/redis-manager');
 const { CacheManagerError } = require('../lib');
 
-
 describe('Redis Manager', function() {
 
 	context('when use mocks', () => {

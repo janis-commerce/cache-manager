@@ -52,7 +52,7 @@ describe('Cache Manager Test', () => {
 		});
 	});
 
-	context('when should reset data', () => {
+	context('when reset data', () => {
 		it('should reset key in cache', async () => {
 			await cache.save('k1', 'sk1', '{id: v1}');
 			await cache.reset('k1');
@@ -62,13 +62,13 @@ describe('Cache Manager Test', () => {
 
 		it('should reset all', async () => {
 			await cache.save('entity', 'sub', 'reset all test ');
-			await cache.redis.reset();
-			const res = await cache.redis.get('entity', 'sub');
+			await cache.reset();
+			const res = await cache.fetch('entity', 'sub');
 			assert.equal(res, null);
 		});
 	});
 
-	context('when should throw error', () => {
+	context('when throw error', () => {
 
 		it('should throw error in initStrategy not implemented', () => {
 			assert.throws(() => cache.initStrategy('other'), {
